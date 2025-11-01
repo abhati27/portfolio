@@ -1,0 +1,92 @@
+import { Theme, ThemeConfig } from '@/types';
+
+export const themes: Record<Theme, ThemeConfig> = {
+  empire: {
+    name: 'Galactic Empire',
+    icon: '🟥',
+    description: 'Dark Futurism',
+    colors: {
+      primary: '#FF1744',
+      secondary: '#4A5568',
+      accent: '#DC143C',
+      background: '#0A0A0A',
+      foreground: '#F5F5F5',
+      cardBg: 'rgba(30, 30, 30, 0.95)',
+      chatBubbleAI: 'linear-gradient(135deg, #2D2D2D 0%, #1A1A1A 100%)',
+      chatBubbleUser: 'rgba(255, 23, 68, 0.2)',
+      border: '#FF1744',
+    },
+    gradient: 'radial-gradient(ellipse at center, #0A0A0A 0%, #000000 100%)',
+    buttonGradient: 'linear-gradient(135deg, #FF1744 0%, #C62828 100%)',
+    textGradient: 'linear-gradient(135deg, #FF1744 0%, #FF6B6B 100%)',
+  },
+  jedi: {
+    name: 'Jedi Temple',
+    icon: '🪶',
+    description: 'Peaceful & Mystic',
+    colors: {
+      primary: '#CA8A04',
+      secondary: '#87CEEB',
+      accent: '#F5DEB3',
+      background: '#FFFEF7',
+      foreground: '#2C3E50',
+      cardBg: 'rgba(255, 255, 255, 0.9)',
+      chatBubbleAI: 'linear-gradient(135deg, #CA8A04 0%, #87CEEB 100%)',
+      chatBubbleUser: 'rgba(135, 206, 235, 0.2)',
+      border: '#CA8A04',
+    },
+    gradient: 'linear-gradient(180deg, #FFF9E6 0%, #E8F4F8 50%, #FFF9E6 100%)',
+    buttonGradient: 'linear-gradient(135deg, #CA8A04 0%, #A16207 100%)',
+    textGradient: 'linear-gradient(135deg, #A16207 0%, #4682B4 100%)',
+  },
+  outerrim: {
+    name: 'Outer Rim',
+    icon: '🛠️',
+    description: 'Rebel Industrial',
+    colors: {
+      primary: '#DC6B2F',
+      secondary: '#1E3A8A',
+      accent: '#CBD5E0',
+      background: '#F5F5F5',
+      foreground: '#1A202C',
+      cardBg: 'rgba(255, 255, 255, 0.85)',
+      chatBubbleAI: 'linear-gradient(135deg, #DC6B2F 0%, #1E3A8A 100%)',
+      chatBubbleUser: 'rgba(203, 213, 224, 0.4)',
+      border: '#A0AEC0',
+    },
+    gradient: 'linear-gradient(135deg, #E2E8F0 0%, #CBD5E0 50%, #A0AEC0 100%)',
+    buttonGradient: 'linear-gradient(135deg, #DC6B2F 0%, #B85525 100%)',
+    textGradient: 'linear-gradient(135deg, #DC6B2F 0%, #1E3A8A 100%)',
+  },
+  hyperspace: {
+    name: 'Hyperspace',
+    icon: '🌠',
+    description: 'Futuristic Energy',
+    colors: {
+      primary: '#00D9FF',
+      secondary: '#8B5CF6',
+      accent: '#E0E7FF',
+      background: '#0F0F23',
+      foreground: '#FFFFFF',
+      cardBg: 'rgba(15, 23, 42, 0.8)',
+      chatBubbleAI: 'linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%)',
+      chatBubbleUser: 'rgba(139, 92, 246, 0.2)',
+      border: '#00D9FF',
+    },
+    gradient: 'radial-gradient(ellipse at top, #1E1B4B 0%, #0F0F23 50%, #000000 100%)',
+    buttonGradient: 'linear-gradient(135deg, #00D9FF 0%, #8B5CF6 100%)',
+    textGradient: 'linear-gradient(135deg, #00D9FF 0%, #A78BFA 100%)',
+  },
+};
+
+export const getThemeEmoji = (theme: Theme): string => {
+  const emojis = {
+    empire: '🟥',
+    jedi: '🪶',
+    outerrim: '🛠️',
+    hyperspace: '🌠',
+  };
+  return emojis[theme];
+};
+
+
