@@ -169,10 +169,10 @@ export default function PortfolioPage() {
                   {/* Suggested Prompts - Horizontal Scroll */}
                   <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-hide pb-2">
                     {[
-                      "R&R Award",
-                      "AI Solutions",
-                      "Product Manager Role",
-                      "Technical Skills",
+                      "🏆 Excellence Award",
+                      "🤖 AI Projects",
+                      "📊 Product Leadership",
+                      "💻 Tech Stack",
                     ].map((prompt, idx) => {
                       const fullPrompts = [
                         "Tell me about your R&R Award at Incedo",
