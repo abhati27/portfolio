@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { MessageCircle, Download, Briefcase, Code, GraduationCap, Award, Send, Github, Linkedin, Mail, Phone, Trophy, Heart, Star } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { resumeData, additionalInfo } from '@/lib/resume-data';
+import { getImagePath } from '@/lib/utils';
 import SeasonalBackground from '@/components/SeasonalBackground';
 import ThemeSlider from '@/components/SeasonSlider';
 import ProjectCard from '@/components/ProjectCard';
@@ -60,7 +61,7 @@ export default function PortfolioPage() {
           <ThemeSlider />
 
           <motion.a
-            href="/resume.pdf"
+            href={getImagePath("/resume.pdf")}
             download
             className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg"
             style={{ background: theme.buttonGradient }}
@@ -92,7 +93,7 @@ export default function PortfolioPage() {
                 className="flex-shrink-0"
               >
                 <Image
-                  src="/portfolio.png"
+                  src={getImagePath("/portfolio.png")}
                   alt="Anmol Vijay Bhatia"
                   width={280}
                   height={340}

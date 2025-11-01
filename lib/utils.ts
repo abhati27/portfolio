@@ -16,4 +16,10 @@ export function generateId(): string {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
 
+// Helper to add basePath to image URLs for GitHub Pages
+export function getImagePath(path: string): string {
+  const basePath = '/portfolio';
+  return `${basePath}${path}`;
+}
+
 

@@ -8,7 +8,7 @@ import { Send, Briefcase, Download, Sparkles } from 'lucide-react';
 import { client } from '@gradio/client';
 import { Message } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
-import { generateId } from '@/lib/utils';
+import { generateId, getImagePath } from '@/lib/utils';
 import SeasonalBackground from '@/components/SeasonalBackground';
 import ThemeSlider from '@/components/SeasonSlider';
 import ChatMessage from '@/components/ChatMessage';
@@ -369,7 +369,7 @@ function ChatPageContent() {
               }}
             >
               <Image
-                src="/portfolio.png"
+                src={getImagePath("/portfolio.png")}
                 alt="Anmol Vijay Bhatia"
                 width={48}
                 height={48}
@@ -492,7 +492,7 @@ function ChatPageContent() {
           </motion.button>
 
           <motion.a
-            href="/resume.pdf"
+            href={getImagePath("/resume.pdf")}
             download
             className="flex items-center gap-2 px-6 py-4 rounded-full text-white font-medium shadow-lg"
             style={{ background: theme.buttonGradient }}

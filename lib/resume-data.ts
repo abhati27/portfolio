@@ -64,7 +64,7 @@ export const resumeData: ResumeData = {
       id: '1',
       title: 'Ecommerce Inventory Management System',
       description: 'A full-stack web application with a responsive user interface that enhanced supply chain pipeline and improved business expenditure for 5 stakeholders.',
-      image: '/Inventorymanagement.png',
+      image: '/portfolio/Inventorymanagement.png',
       tags: ['Java', 'Spring Boot', 'React.js', 'MySQL', 'AWS EC2/RDS', 'Docker', 'Material UI'],
       github: 'https://github.com/anmolbhatia',
       highlights: [
@@ -77,7 +77,7 @@ export const resumeData: ResumeData = {
       id: '2',
       title: 'Deep Research Agentic System',
       description: 'A team of collaborating AI Agents capable of carrying out extensive research tasks across heterogeneous sources, integrating retrieval, analysis, and summarization pipelines.',
-      image: '/deepresearch.png',
+      image: '/portfolio/deepresearch.png',
       tags: ['Python', 'LangGraph', 'Ollama', 'LLaMA-3-8B', 'PGVector', 'Fast APIs'],
       github: 'https://github.com/anmolbhatia',
       highlights: [
@@ -90,7 +90,7 @@ export const resumeData: ResumeData = {
       id: '3',
       title: 'Advanced Search Engine Optimizer',
       description: 'A search engine on Linux, optimizing token filtration and data retrieval efficiency using Binary Search Trees (BSTs) and AVL Trees.',
-      image: '/SEO.png',
+      image: '/portfolio/SEO.png',
       tags: ['C++', 'CMake', 'Ubuntu Linux', 'TinyXML', 'Data Structures'],
       github: 'https://github.com/anmolbhatia',
       highlights: [
@@ -103,7 +103,7 @@ export const resumeData: ResumeData = {
       id: '4',
       title: '15 Puzzle AI Solver',
       description: 'Efficient 15-puzzle solver with IDA* search, utilizing misplaced tiles & Manhattan distance heuristics.',
-      image: '/15Ai.png',
+      image: '/portfolio/15Ai.png',
       tags: ['C++', 'AI', 'Search Algorithms', 'Heuristics'],
       github: 'https://github.com/anmolbhatia',
       highlights: [
@@ -129,7 +129,7 @@ export const resumeData: ResumeData = {
       id: '6',
       title: 'Movie Recommender Mobile App',
       description: 'A cross-platform app with secure login verification system using AWS Amplify, providing movie ratings, reviews, and cast information.',
-      image: '/movieapp.png',
+      image: '/portfolio/movieapp.png',
       tags: ['Flutter', 'Dart', 'AWS Amplify', 'Cross-platform'],
       github: 'https://github.com/anmolbhatia',
       highlights: [
