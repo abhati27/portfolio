@@ -116,7 +116,7 @@ export const resumeData: ResumeData = {
       id: '5',
       title: 'Dish Discoverer Web Application',
       description: 'User-friendly web app that allows users to search and discover recipes based on ingredients, cuisine, or dietary restrictions using the Spoonacular API.',
-      image: '',
+      image: '/portfolio/dishdiscoverer.png',
       tags: ['JavaScript', 'HTML', 'CSS', 'Spoonacular API'],
       github: 'https://github.com/anmolbhatia',
       highlights: [
