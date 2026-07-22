@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Theme } from '@/types';
 import { themes } from '@/lib/themes';
+import { track } from '@/lib/analytics';
 
 export default function ThemeSlider() {
   const { themeName, setThemeName, theme } = useTheme();
@@ -28,7 +29,10 @@ export default function ThemeSlider() {
         {themeNames.map((t) => (
           <motion.button
             key={t}
-            onClick={() => setThemeName(t)}
+            onClick={() => {
+              track('theme_changed', { theme: t });
+              setThemeName(t);
+            }}
             className="relative px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

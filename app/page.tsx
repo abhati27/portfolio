@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { MessageCircle, Download, Briefcase, Code, GraduationCap, Award, Send, Github, Linkedin, Mail, Phone, Trophy, Heart, Star } from 'lucide-react';
+import { MessageCircle, Download, Briefcase, Code, GraduationCap, Award, Send, Github, Linkedin, Mail, Phone, Trophy, Heart, Star, Bot, Sparkles } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { resumeData, additionalInfo } from '@/lib/resume-data';
 import { getImagePath } from '@/lib/utils';
+import { track } from '@/lib/analytics';
 import SeasonalBackground from '@/components/SeasonalBackground';
 import ThemeSlider from '@/components/SeasonSlider';
 import ProjectCard from '@/components/ProjectCard';
@@ -21,6 +22,7 @@ export default function PortfolioPage() {
 
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;
+    track('ai_twin_message_sent', { source: 'home_input', question: chatInput.trim() });
     // Navigate to chat page with the message as a query parameter
     router.push(`/chat?message=${encodeURIComponent(chatInput)}`);
   };
@@ -48,14 +50,17 @@ export default function PortfolioPage() {
       >
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <motion.button
-            onClick={() => router.push('/chat')}
+            onClick={() => {
+              track('ai_twin_opened', { source: 'header' });
+              router.push('/chat');
+            }}
             className="flex items-center gap-2 px-6 py-3 rounded-full font-medium shadow-lg text-white"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <MessageCircle className="w-5 h-5" />
-            View Chat
+            <Bot className="w-5 h-5" />
+            Ask my AI Twin
           </motion.button>
 
           <ThemeSlider />
@@ -63,6 +68,7 @@ export default function PortfolioPage() {
           <motion.a
             href={getImagePath("/resume.pdf")}
             download
+            onClick={() => track('resume_downloaded', { source: 'header' })}
             className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
@@ -76,7 +82,7 @@ export default function PortfolioPage() {
 
       {/* Main Content */}
       <main className="pt-24 pb-16 px-4 relative z-10">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto xl:pr-20">
           {/* Hero Section */}
           <motion.section
             id="about"
@@ -136,6 +142,23 @@ export default function PortfolioPage() {
                   transition={{ delay: 0.4 }}
                   className="w-full relative z-10"
                 >
+                  {/* AI twin label */}
+                  <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                    <Bot className="w-4 h-4" style={{ color: theme.colors.primary }} />
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: theme.colors.primary }}
+                    >
+                      Chat with my AI twin
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ color: theme.colors.foreground, opacity: 0.6 }}
+                    >
+                      trained on my real background, ask it anything
+                    </span>
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <input
@@ -143,7 +166,7 @@ export default function PortfolioPage() {
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Ask me about my experience..."
+                        placeholder="Ask my AI twin about my experience, projects, anything..."
                         className="w-full px-3 py-2 rounded-full backdrop-blur-sm shadow-lg outline-none transition-all text-sm"
                         style={{
                           background: theme.colors.cardBg,
@@ -171,19 +194,20 @@ export default function PortfolioPage() {
                     {[
                       "🏆 Excellence Award",
                       "🤖 AI Projects",
-                      "📊 Product Leadership",
+                      "🧠 AI/ML Enablement Role",
                       "💻 Tech Stack",
                     ].map((prompt, idx) => {
                       const fullPrompts = [
-                        "Tell me about your R&R Award at Incedo",
+                        "Tell me about your R&R Awards at Incedo",
                         "What AI solutions have you built?",
-                        "Tell me about your Product Manager role",
+                        "Tell me about your AI/ML Enablement role",
                         "What are your technical skills and certifications?",
                       ];
                       return (
                         <motion.button
                           key={prompt}
                           onClick={() => {
+                            track('ai_twin_prompt_clicked', { prompt: fullPrompts[idx], source: 'home' });
                             router.push(`/chat?message=${encodeURIComponent(fullPrompts[idx])}`);
                           }}
                           className="px-2.5 py-1 rounded-full text-xs backdrop-blur-sm shadow-sm hover:shadow-md transition-all whitespace-nowrap flex-shrink-0"
@@ -576,7 +600,7 @@ export default function PortfolioPage() {
       >
         <div className="relative group">
           <motion.a
-            href={resumeData.github || 'https://github.com/anmolbhatia'}
+            href={resumeData.github || 'https://github.com/abhati27'}
             target="_blank"
             rel="noopener noreferrer"
             className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white backdrop-blur-sm"
@@ -650,18 +674,40 @@ export default function PortfolioPage() {
       </motion.div>
 
       {/* Floating Chat Button - Bottom Right */}
-      <motion.button
-        onClick={() => router.push('/chat')}
-        className="fixed bottom-8 right-8 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl text-white z-50"
-        style={{ background: theme.buttonGradient }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
+      <motion.div
+        className="fixed bottom-8 right-8 z-50 group"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <MessageCircle className="w-7 h-7" />
-      </motion.button>
+        {/* Tooltip */}
+        <div
+          className="absolute right-20 top-1/2 -translate-y-1/2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl backdrop-blur-sm"
+          style={{ background: theme.colors.cardBg }}
+        >
+          <span style={{ color: theme.colors.foreground }}>Ask my AI twin 🤖</span>
+        </div>
+
+        <motion.button
+          onClick={() => {
+            track('ai_twin_opened', { source: 'floating' });
+            router.push('/chat');
+          }}
+          className="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl text-white relative"
+          style={{ background: theme.buttonGradient }}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Bot className="w-7 h-7" />
+          {/* AI badge */}
+          <span
+            className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold shadow-md"
+            style={{ background: theme.colors.foreground, color: theme.colors.background }}
+          >
+            AI
+          </span>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }

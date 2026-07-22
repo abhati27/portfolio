@@ -1,0 +1,17 @@
+name: Keep Hugging Face Space Warm
+
+on:
+  schedule:
+    # Every 10 minutes. Free HF CPU Spaces sleep after a period of inactivity;
+    # a periodic request resets that idle timer so visitors don't hit a cold start.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the Career Conversation Space
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            https://abhati27-career-conversation-anmol.hf.space/ || true

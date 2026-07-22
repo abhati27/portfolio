@@ -81,50 +81,48 @@ export default function ScrollSpyNav() {
 
   return (
     <nav
-      className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden xl:block"
+      className="fixed right-4 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col gap-4"
       aria-label="Section navigation"
     >
-      <ul className="flex flex-col gap-2">
-        {sections.map((section) => {
-          const isActive = activeSections.has(section.id);
+      {sections.map((section) => {
+        const isActive = activeSections.has(section.id);
 
-          return (
-            <li key={section.id}>
-              <button
-                onClick={() => scrollToSection(section.id)}
-                className="text-right px-3 py-1.5 rounded-md transition-all duration-300 ease-in-out hover:-translate-x-1"
-                style={{
-                  backgroundColor: isActive 
-                    ? `${theme.colors.primary}15` 
-                    : 'transparent',
-                  color: isActive 
-                    ? theme.colors.primary 
-                    : theme.colors.foreground,
-                  borderRight: isActive 
-                    ? `2px solid ${theme.colors.primary}` 
-                    : '2px solid transparent',
-                  opacity: isActive ? 1 : 0.85,
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: '0.75rem',
-                  paddingRight: '0.75rem',
-                }}
-                aria-current={isActive ? 'location' : undefined}
-              >
-                {section.label}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      
-      {/* Background panel for better visibility */}
-      <div
-        className="absolute inset-0 -inset-x-1.5 -inset-y-2 rounded-lg backdrop-blur-sm -z-10"
-        style={{
-          backgroundColor: `${theme.colors.cardBg}80`,
-          border: `1px solid ${theme.colors.border}30`,
-        }}
-      />
+        return (
+          <button
+            key={section.id}
+            onClick={() => scrollToSection(section.id)}
+            className="group flex items-center justify-end gap-3 py-1"
+            aria-current={isActive ? 'location' : undefined}
+            aria-label={section.label}
+          >
+            {/* Label chip: hidden until hover, so nothing sits over the content */}
+            <span
+              className="whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium opacity-0 translate-x-2 pointer-events-none transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 backdrop-blur-md shadow-lg"
+              style={{
+                backgroundColor: theme.colors.cardBg,
+                color: isActive ? theme.colors.primary : theme.colors.foreground,
+                border: `1px solid ${theme.colors.border}55`,
+              }}
+            >
+              {section.label}
+            </span>
+
+            {/* Dot / bar indicator (the only always-visible part) */}
+            <span
+              className="rounded-full transition-all duration-300 group-hover:opacity-100"
+              style={{
+                height: '8px',
+                width: isActive ? '26px' : '8px',
+                backgroundColor: isActive
+                  ? theme.colors.primary
+                  : `${theme.colors.foreground}55`,
+                boxShadow: isActive ? `0 0 12px ${theme.colors.primary}99` : 'none',
+                opacity: isActive ? 1 : 0.75,
+              }}
+            />
+          </button>
+        );
+      })}
     </nav>
   );
 }

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Project } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
+import { track } from '@/lib/analytics';
 import { ExternalLink, Github, Sparkles, Maximize2, X } from 'lucide-react';
 
 interface ProjectCardProps {
@@ -145,6 +146,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               href={project.github}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => track('project_clicked', { title: project.title, type: 'github', url: project.github })}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md"
               style={{ background: theme.buttonGradient }}
               whileHover={{ scale: 1.05 }}
@@ -159,6 +161,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               href={project.link}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => track('project_clicked', { title: project.title, type: 'link', url: project.link })}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
               style={{
                 background: `${theme.colors.primary}20`,
