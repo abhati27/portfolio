@@ -1,0 +1,33 @@
+name: Keep Repo Active
+
+# GitHub disables scheduled workflows after 60 days of no repository activity.
+# This job makes a tiny "heartbeat" commit once a month, so the repo never goes
+# idle — which keeps ALL scheduled workflows (including the Space keep-alive)
+# permanently enabled. It's self-sustaining: each monthly commit resets the
+# 60-day clock, keeping the scheduler alive to make the next one.
+#
+# The commit is authored by the built-in GITHUB_TOKEN, and GitHub never triggers
+# new workflow runs from GITHUB_TOKEN commits, so this does NOT cause a Pages
+# rebuild. (deploy.yml also path-ignores the heartbeat file as a backstop.)
+
+on:
+  schedule:
+    - cron: '0 3 1 * *' # 03:00 UTC on the 1st of every month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Commit heartbeat
+        run: |
+          date -u +"Last keepalive: %Y-%m-%dT%H:%M:%SZ" > .github/keepalive-heartbeat.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive-heartbeat.txt
+          git commit -m "chore: keepalive heartbeat [skip ci]" || exit 0
+          git push
