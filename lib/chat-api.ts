@@ -16,6 +16,20 @@ export interface ChatTurn {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// Fire-and-forget request that wakes the (free, sleep-prone) Space container so
+// it's already running by the time a visitor sends their first message. Called
+// on page load — the visitor's browsing time doubles as warm-up time. Debounced
+// so navigating between pages doesn't spam it.
+let lastWarmUp = 0;
+export function warmUpSpace(): void {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+  if (now - lastWarmUp < 60_000) return; // at most once per minute
+  lastWarmUp = now;
+  // no-cors: we don't need the response, just the request that wakes the Space.
+  fetch(`${SPACE_URL}/`, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+}
+
 /**
  * Ask the chatbot a question and return its answer.
  *

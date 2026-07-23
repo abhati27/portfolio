@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -9,6 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { resumeData, additionalInfo } from '@/lib/resume-data';
 import { getImagePath } from '@/lib/utils';
 import { track } from '@/lib/analytics';
+import { warmUpSpace } from '@/lib/chat-api';
 import SeasonalBackground from '@/components/SeasonalBackground';
 import ThemeSlider from '@/components/SeasonSlider';
 import ProjectCard from '@/components/ProjectCard';
@@ -19,6 +20,11 @@ export default function PortfolioPage() {
   const router = useRouter();
   const { theme, themeName } = useTheme();
   const [chatInput, setChatInput] = useState('');
+
+  // Wake the chat Space on load so it's warm by the time a visitor opens chat.
+  useEffect(() => {
+    warmUpSpace();
+  }, []);
 
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;

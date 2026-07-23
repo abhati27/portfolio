@@ -8,7 +8,7 @@ import { Send, Briefcase, Download, Bot } from 'lucide-react';
 import { Message } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { generateId, getImagePath } from '@/lib/utils';
-import { askAnmol, ChatTurn } from '@/lib/chat-api';
+import { askAnmol, warmUpSpace, ChatTurn } from '@/lib/chat-api';
 import { track } from '@/lib/analytics';
 import SeasonalBackground from '@/components/SeasonalBackground';
 import ThemeSlider from '@/components/SeasonSlider';
@@ -50,6 +50,11 @@ function ChatPageContent() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Wake the Space as soon as the chat opens, so the first reply isn't cold.
+  useEffect(() => {
+    warmUpSpace();
+  }, []);
 
   // Append the user's message, ask the Space, then append the reply (or a
   // friendly error). History is every turn so far except the opening greeting.
