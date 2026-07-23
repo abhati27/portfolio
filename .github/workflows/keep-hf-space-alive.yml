@@ -2,11 +2,12 @@ name: Keep Hugging Face Space Warm
 
 on:
   schedule:
-    # Every 5 minutes (GitHub Actions' minimum). Free HF CPU Spaces sleep after
-    # inactivity; a periodic request resets that idle timer so the Space stays
-    # warm between visitors. (GitHub's scheduler is best-effort and can be
-    # delayed, so the client-side warm-up on page load is the primary defense.)
-    - cron: '*/5 * * * *'
+    # Free HF CPU Spaces are paused after ~48 hours of inactivity. A request
+    # resets that idle timer, so we ping twice a day (00:00 and 12:00 UTC). Two
+    # pings/day leaves a wide safety margin: even if GitHub's scheduler delays or
+    # skips one run (it's best-effort), the Space still gets hit well within 48h.
+    # (The client-side warm-up on page load handles per-visit warmth separately.)
+    - cron: '0 0,12 * * *'
   workflow_dispatch:
 
 jobs:
