@@ -7,15 +7,13 @@ export const resumeData: ResumeData = {
   phone: '+1 (312) 826-2020',
   linkedin: 'https://www.linkedin.com/in/anmol-vb',
   github: 'https://github.com/abhati27',
-  summary: `I'm a guy with a head full of schemes and a heart full of memes. I fell for computers young, spending
-    absurd hours in Minecraft, then getting more curious about what was under the hood than the game itself. Before
-    long I was cracking open the computer, figuring out how it all fit together, and teaching myself to mod systems.
-    That curiosity never really switched off. It just grew up with me. But the real reason I threw myself into
-    computer science is how interconnected it is. It threads through physics, chemistry, sociology, art, all of it,
-    becoming the tool people reach for no matter what they're up against. Hand a programmer the right problem and they
-    can nudge the whole world a step forward. I finished my bachelor's, spent three years putting it to work in the
-    field, and I'm now back for a master's in AI because I still get too excited about this stuff to stop. Right now
-    I'm hunting for internships and full-time roles that'll pull me deeper into the parts I keep gravitating toward.`,
+  summary: `I'm a guy with a head full of schemes and a heart full of memes. My obsession with tech started with
+    absurd hours in Minecraft, which quickly spiraled into cracking open hardware and teaching myself system modding
+    to see how things actually worked under the hood. To me, computer science is the ultimate universal tool, sitting
+    right at the intersection of systems, art, human behavior, and problem-solving. After earning my bachelor's in CS
+    and spending three years engineering software in the field, I'm now pursuing my Master's in AI to double down on
+    the technology I'm most passionate about. I'm actively seeking full-time roles and internships where I can tackle
+    complex problems, build intelligent systems, and help move the needle forward.`,
 
   experience: [
     {
@@ -23,16 +21,12 @@ export const resumeData: ResumeData = {
       title: 'Software Engineer (AI/ML Enablement)',
       company: 'Incedo Inc.',
       period: 'October 2025 - July 2026',
-      description: `This is where the AI/ML stuff stopped being a side interest and became the actual job. My first big
-        build was an ATOLL Network Summarizer. Telecom teams were losing entire afternoons pulling insights out of raw
-        network data by hand, so I put together a LangGraph pipeline where a handful of agents split up the work and
-        hand back a clean summary in seconds. After that came the thing I'm proudest of, a multi-agent NL-to-SQL
-        system. You ask a question in plain English, and the agents figure out what you actually meant, find the right
-        tables, write the query, and double-check their own answer before handing it over, so someone who has never
-        touched SQL can still pull their own data. To keep all of that from ever doing anything dangerous, I shipped an
-        MCP server that gives the agents a fixed set of safe tools for running queries, reading schemas, validating
-        data, and logging everything they do. And somewhere in the middle of all that, I sit down with our Chief
-        Solutions Officer and help figure out where these AI products are actually headed.`,
+      description: `This role turned AI/ML from a passion into my daily focus. I engineered the ATOLL Network
+        Summarizer, a multi-agent LangGraph pipeline that shrank telecom data analysis from hours to seconds, and
+        built a multi-agent NL-to-SQL system that translates natural language into self-validated database queries.
+        To keep these systems safe and predictable, I shipped a custom MCP server to strictly sandbox agent execution
+        and audit logging. Alongside hands-on development, I partnered directly with the Chief Solutions Officer to
+        define the long-term AI product strategy.`,
       skills: ['LangGraph', 'Multi-Agent Systems', 'MCP', 'NL-to-SQL', 'Python', 'Agent Architecture'],
     },
     {
@@ -40,14 +34,12 @@ export const resumeData: ResumeData = {
       title: 'Associate Software Engineer (Full Stack)',
       company: 'Incedo Inc.',
       period: 'July 2023 - October 2025',
-      description: `Before the AI work, I spent a little over two years learning what enterprise scale actually feels
-        like. The platform had more than 150,000 users, which meant nothing was allowed to quietly fall over. The fix
-        I still bring up too often: pages were taking 40 seconds to load, and I traced it back to a pile of API calls
-        that were all sitting around waiting on each other for no good reason. Once I untangled how the services
-        talked, it dropped to 2 seconds. I also rebuilt the entire role-based access system from scratch, which cut
-        unauthorized-access incidents by 85 percent, sat down with real users to understand how they actually worked
-        and turned a stiff old interface into a widget layout they could arrange themselves, and quietly put out a
-        spam-filter fire by batching a flood of transactional emails into scheduled digests.`,
+      description: `Before shifting to AI, I spent over two years learning what enterprise scale really means while
+        supporting a platform of 150,000+ users. My focus was on performance, security, and system reliability. I
+        unblocked redundant API dependencies to plummet page load times from 40 seconds down to 2 seconds, rebuilt our
+        Role-Based Access Control (RBAC) system from scratch, cutting unauthorized access incidents by 85%, and
+        modernized a rigid legacy UI into customizable, user-driven dashboard widgets. I also engineered a batch-digest
+        pipeline for transactional emails, eliminating rate-limiting bottlenecks and server strain.`,
       skills: ['Java', 'Spring Boot', 'React.js', 'RBAC', 'Microservices', 'System Design'],
     },
     {
@@ -55,11 +47,11 @@ export const resumeData: ResumeData = {
       title: 'Computer Science Teaching Assistant',
       company: 'University of Illinois at Chicago - College of Engineering',
       period: 'August 2021 - May 2023',
-      description: `I ran labs for more than 130 students, and I basically tried to teach the class I wish I'd had.
-        Instead of talking at them, we did a lot of pair programming and test-driven development so they were actually
-        writing code together and catching their own mistakes. The part that stuck was debugging. I kept pushing them
-        to slow down and isolate a failure on purpose instead of guessing, whether it was recursion tying itself in
-        knots, pointer math gone sideways, or a data structure quietly refusing to cooperate.`,
+      description: `I led labs for over 130 computer science students. Instead of passive lecturing, I anchored
+        sessions around pair programming and Test-Driven Development (TDD) to build real-world coding habits early. My
+        biggest emphasis was systematic debugging, coaching students to step back and isolate root causes methodically
+        rather than guessing, whether they were untangling recursive logic, troubleshooting pointer arithmetic, or
+        stress-testing custom data structures.`,
       skills: ['C/C++', 'Data Structures', 'Teaching', 'Debugging', 'Mentorship'],
     },
     {
@@ -67,11 +59,11 @@ export const resumeData: ResumeData = {
       title: 'Mathematics Learning Assistant',
       company: 'University of Illinois at Chicago - Department of Mathematics',
       period: 'August 2021 - December 2021',
-      description: `I kept noticing students who could follow every step of a proof without believing a word of it, so
-        I flipped my discussion sections to lead with the intuition first and the formal notation second. That one
-        change did more for their confidence than anything else I tried. Every week I'd take the questions that kept
-        coming up back to the instructors, and we'd rework the next session around whatever was actually confusing
-        people.`,
+      description: `In my math and theory sections, I noticed students often mechanically followed formal proofs
+        without truly grasping why they worked. To fix this, I flipped my approach, building intuitive, conceptual
+        understanding first before introducing formal notation, which completely transformed their confidence. I also
+        maintained a weekly feedback loop with lead instructors, tracking recurring student pain points to continually
+        adapt and refine our upcoming sessions around what actually needed clarification.`,
       skills: ['Mathematics', 'Teaching', 'Curriculum Design', 'Mentorship'],
     },
     {
@@ -79,11 +71,10 @@ export const resumeData: ResumeData = {
       title: 'Intern',
       company: 'KPMG Kuwait',
       period: 'January 2021 - March 2021',
-      description: `My first real taste of professional engineering was on the security side. I ran full audits of web
-        infrastructure with tools like Burp Suite and Wireshark, plus a few scripts I wrote myself, working through
-        OWASP threat models to find and close holes before anyone else could. I also spent a good chunk of time
-        digging through older IT systems and used Gartner research to help make the case for what leadership should
-        modernize first.`,
+      description: `My engineering background started with systems auditing and infrastructure health. I used tools
+        like Burp Suite and Wireshark alongside custom scripts to hunt down web vulnerabilities and patch them
+        proactively. I also evaluated older IT systems, leveraging Gartner market research to make a data-driven
+        business case for executive modernization priorities.`,
       skills: ['Security Audits', 'Burp Suite', 'Wireshark', 'OWASP', 'Python'],
     },
   ],

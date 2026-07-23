@@ -131,14 +131,14 @@ function ChatPageContent() {
           borderColor: `${theme.colors.border}40`,
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4"
+            className="flex items-center gap-2 sm:gap-4 min-w-0"
           >
             <div
-              className="relative w-12 h-12 rounded-full overflow-hidden border-2"
+              className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 flex-shrink-0"
               style={{
                 borderColor: theme.colors.primary,
               }}
@@ -152,16 +152,16 @@ function ChatPageContent() {
                 priority
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1
-                  className="text-xl font-bold"
+                  className="text-lg sm:text-xl font-bold whitespace-nowrap"
                   style={{ color: theme.colors.foreground }}
                 >
                   Anmol's AI Twin
                 </h1>
                 <span
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide flex-shrink-0"
                   style={{
                     background: `${theme.colors.primary}22`,
                     color: theme.colors.primary,
@@ -173,7 +173,7 @@ function ChatPageContent() {
                 </span>
               </div>
               <p
-                className="text-sm"
+                className="hidden sm:block text-sm"
                 style={{
                   color: theme.colors.foreground,
                   opacity: 0.85
@@ -184,18 +184,21 @@ function ChatPageContent() {
             </div>
           </motion.div>
 
-          <div className="flex items-center gap-4">
-            <ThemeSlider />
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            <div className="hidden md:block">
+              <ThemeSlider />
+            </div>
 
             <motion.button
               onClick={() => router.push('/')}
-              className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg"
+              className="flex items-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full text-white font-medium shadow-lg flex-shrink-0 whitespace-nowrap"
               style={{ background: theme.buttonGradient }}
               whileHover={{ scale: 1.05, boxShadow: `0 10px 30px ${theme.colors.primary}40` }}
               whileTap={{ scale: 0.95 }}
+              aria-label="Back to Portfolio"
             >
               <Briefcase className="w-5 h-5" />
-              Back to Portfolio
+              <span className="hidden sm:inline">Back to Portfolio</span>
             </motion.button>
           </div>
         </div>
@@ -281,7 +284,7 @@ function ChatPageContent() {
 
           <motion.a
             href={getImagePath("/resume.pdf")}
-            download
+            download="Anmol_Bhatia_Resume.pdf"
             onClick={() => track('resume_downloaded', { source: 'chat' })}
             className="flex items-center gap-2 px-6 py-4 rounded-full text-white font-medium shadow-lg"
             style={{ background: theme.buttonGradient }}

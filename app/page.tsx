@@ -48,34 +48,36 @@ export default function PortfolioPage() {
           borderColor: `${theme.colors.border}40`,
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
           <motion.button
             onClick={() => {
               track('ai_twin_opened', { source: 'header' });
               router.push('/chat');
             }}
-            className="flex items-center gap-2 px-6 py-3 rounded-full font-medium shadow-lg text-white"
+            className="flex items-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full font-medium shadow-lg text-white flex-shrink-0 whitespace-nowrap"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label="Ask my AI Twin"
           >
             <Bot className="w-5 h-5" />
-            Ask my AI Twin
+            <span className="hidden sm:inline">Ask my AI Twin</span>
           </motion.button>
 
           <ThemeSlider />
 
           <motion.a
             href={getImagePath("/resume.pdf")}
-            download
+            download="Anmol_Bhatia_Resume.pdf"
             onClick={() => track('resume_downloaded', { source: 'header' })}
-            className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium shadow-lg"
+            className="flex items-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full text-white font-medium shadow-lg flex-shrink-0 whitespace-nowrap"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label="Download Resume"
           >
             <Download className="w-5 h-5" />
-            Download Resume
+            <span className="hidden sm:inline">Download Resume</span>
           </motion.a>
         </div>
       </header>
@@ -90,7 +92,7 @@ export default function PortfolioPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-16"
           >
-            <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
               {/* Profile Image - Left Side */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -109,7 +111,7 @@ export default function PortfolioPage() {
               </motion.div>
 
               {/* Text Content - Right Side */}
-              <div className="flex-1 text-center md:text-left w-full md:w-auto">
+              <div className="flex-1 min-w-0 text-center md:text-left w-full md:w-auto">
                 <h1
                   className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
                   style={{
@@ -225,6 +227,52 @@ export default function PortfolioPage() {
                     })}
                   </div>
                 </motion.div>
+
+                {/* Social links — inline on mobile/tablet (the floating column is lg+ only) */}
+                <div className="flex lg:hidden items-center justify-center md:justify-start gap-3 mt-6">
+                  <a
+                    href={resumeData.github || 'https://github.com/abhati27'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                    onClick={() => track('social_clicked', { network: 'github' })}
+                    className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg text-white"
+                    style={{ background: theme.buttonGradient }}
+                  >
+                    <Github className="w-5 h-5" />
+                  </a>
+                  <a
+                    href={resumeData.linkedin || 'https://linkedin.com/in/anmol-vb'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn"
+                    onClick={() => track('social_clicked', { network: 'linkedin' })}
+                    className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg text-white"
+                    style={{ background: theme.buttonGradient }}
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                  <a
+                    href={`mailto:${resumeData.email}`}
+                    aria-label="Email"
+                    onClick={() => track('social_clicked', { network: 'email' })}
+                    className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg text-white"
+                    style={{ background: theme.buttonGradient }}
+                  >
+                    <Mail className="w-5 h-5" />
+                  </a>
+                  {resumeData.phone && (
+                    <a
+                      href={`tel:${resumeData.phone}`}
+                      aria-label="Phone"
+                      onClick={() => track('social_clicked', { network: 'phone' })}
+                      className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg text-white"
+                      style={{ background: theme.buttonGradient }}
+                    >
+                      <Phone className="w-5 h-5" />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </motion.section>
@@ -591,9 +639,9 @@ export default function PortfolioPage() {
         </div>
       </main>
 
-      {/* Floating Social Icons - Bottom Left */}
+      {/* Floating Social Icons - Bottom Left (lg+ only; mobile/tablet use the inline row in the hero) */}
       <motion.div
-        className="fixed bottom-8 left-8 flex flex-col gap-4 z-50"
+        className="fixed bottom-8 left-8 hidden lg:flex flex-col gap-4 z-50"
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}

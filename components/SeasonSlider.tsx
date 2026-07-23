@@ -11,21 +11,21 @@ export default function ThemeSlider() {
   const themeNames: Theme[] = ['empire', 'jedi', 'outerrim', 'hyperspace'];
 
   return (
-    <div 
-      className="flex items-center gap-3 px-4 py-2 rounded-full backdrop-blur-md shadow-lg"
-      style={{ 
+    <div
+      className="flex items-center gap-1.5 sm:gap-3 px-2 sm:px-4 py-2 rounded-full backdrop-blur-md shadow-lg"
+      style={{
         background: theme.colors.cardBg,
         borderColor: theme.colors.border,
         borderWidth: 1,
       }}
     >
-      <span 
-        className="text-xs font-medium uppercase tracking-wider"
+      <span
+        className="hidden lg:inline text-xs font-medium uppercase tracking-wider"
         style={{ color: theme.colors.foreground }}
       >
         Theme:
       </span>
-      <div className="flex gap-2">
+      <div className="flex gap-1 sm:gap-2">
         {themeNames.map((t) => (
           <motion.button
             key={t}
@@ -33,7 +33,7 @@ export default function ThemeSlider() {
               track('theme_changed', { theme: t });
               setThemeName(t);
             }}
-            className="relative px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all"
+            className="relative px-2.5 sm:px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{
@@ -56,7 +56,7 @@ export default function ThemeSlider() {
             )}
             <span className="relative z-10 flex items-center gap-1.5">
               <span>{themes[t].icon}</span>
-              <span className="hidden md:inline">{themes[t].name}</span>
+              <span className="hidden lg:inline">{themes[t].name}</span>
             </span>
           </motion.button>
         ))}
