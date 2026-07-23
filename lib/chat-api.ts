@@ -14,14 +14,41 @@ export interface ChatTurn {
   content: string;
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 /**
  * Ask the chatbot a question and return its answer.
  *
- * Two-step Gradio 5 queue protocol:
+ * The Space runs on Hugging Face's free tier and calls the free Groq API, so
+ * occasional requests fail transiently: a cold start after the Space sleeps, or
+ * a brief concurrency/rate-limit blip when messages come quickly. Those recover
+ * on their own, so we retry a few times with backoff before surfacing an error.
+ */
+export async function askAnmol(message: string, history: ChatTurn[]): Promise<string> {
+  const maxAttempts = 3;
+  const backoffMs = [1500, 3500]; // waits before retries 2 and 3
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await attemptChat(message, history);
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts - 1) {
+        await sleep(backoffMs[attempt]);
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('The assistant is unavailable.');
+}
+
+/**
+ * A single attempt at the two-step Gradio 5 queue protocol:
  *   1. POST /gradio_api/call/chat  { data: [message, history] }  -> { event_id }
  *   2. GET  /gradio_api/call/chat/<event_id>                     -> SSE result
  */
-export async function askAnmol(message: string, history: ChatTurn[]): Promise<string> {
+async function attemptChat(message: string, history: ChatTurn[]): Promise<string> {
   const enqueue = await fetch(`${SPACE_URL}/gradio_api/call/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
