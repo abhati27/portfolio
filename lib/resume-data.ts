@@ -82,53 +82,6 @@ export const resumeData: ResumeData = {
   projects: [
     {
       id: '1',
-      title: '15 Puzzle AI Solver',
-      description: `The project that made search algorithms click for me. I implemented IDA* to solve the classic
-        15-puzzle, then pitted two heuristics against each other — Manhattan distance vs. misplaced tiles — across
-        hundreds of configurations to see where each one wins. Every run prints the moves, nodes expanded, time, and
-        memory, so the theory becomes something you can actually watch.`,
-      image: '/portfolio/15Ai.png',
-      tags: ['C', 'IDA*', 'Heuristic Search', 'STL', 'Algorithms'],
-      github: 'https://github.com/abhati27/15puzzle-AI-solver',
-      highlights: [
-        'IDA* search with Manhattan distance and misplaced-tile heuristics',
-        'Benchmarked admissibility vs. efficiency across hundreds of configurations',
-        'Reports move sequence, nodes expanded, time, and memory usage',
-      ],
-    },
-    {
-      id: '2',
-      title: 'Ecommerce Inventory Management System',
-      description: `A full-stack inventory platform I built end-to-end for 5 stakeholders — schema and backend from
-        scratch, wrapped in a dashboard non-technical users could actually operate. It tightened up their supply-chain
-        pipeline and cut spend that was leaking out of a manual process.`,
-      image: '/portfolio/Inventorymanagement.png',
-      tags: ['Java', 'Spring Boot', 'React.js', 'MySQL', 'AWS', 'Docker'],
-      github: 'https://github.com/abhati27/InventoryWebApp',
-      highlights: [
-        'Engineered a scalable MySQL schema with Spring Boot + Hibernate ORM',
-        'Real-time updates and an analytics dashboard',
-        'Deployed on AWS EC2/RDS with Docker',
-      ],
-    },
-    {
-      id: '3',
-      title: 'ReliaNet',
-      description: `I rebuilt reliable networking from scratch on top of lossy UDP — stop-and-wait ARQ,
-        sequence-numbered ACKs, EWMA-based RTT estimation — basically to understand everything TCP quietly does for
-        you, by doing it myself. Then I hammered it across 50+ scenarios with configurable packet loss and latency to
-        prove it held up.`,
-      image: '/portfolio/relianet.png',
-      tags: ['Python', 'Sockets', 'Binary Protocol Design', 'Multi-process Architecture'],
-      github: 'https://github.com/abhati27/ReliaNet',
-      highlights: [
-        'Stop-and-wait ARQ with sequence-numbered ACKs',
-        'EWMA-based RTT estimation for adaptive timeouts',
-        'Validated across 50+ configurable loss/latency scenarios',
-      ],
-    },
-    {
-      id: '4',
       title: 'Deep Agentic Research Engine',
       description: `Give it a question and it does the research for you — generating sub-queries, crawling sources,
         checking them against each other, and writing up a synthesized report. It routes across OpenAI, Gemini, and
@@ -144,7 +97,7 @@ export const resumeData: ResumeData = {
       ],
     },
     {
-      id: '5',
+      id: '2',
       title: 'Legal Clause Auditor LLM',
       description: `I wanted to know if a small, self-hosted model could do real legal work without paying an API per
         call — so I fine-tuned LLaMA 3 8B with QLoRA on California court rulings to detect legal clauses, hitting 89%
@@ -160,7 +113,7 @@ export const resumeData: ResumeData = {
       ],
     },
     {
-      id: '6',
+      id: '3',
       title: 'Document Intelligence System',
       description: `Legal and financial forms are where most OCR pipelines fall apart — layout matters as much as text.
         I built a multi-modal pipeline combining LayoutLMv3 and Donut to read the structure and the content together,
@@ -173,6 +126,53 @@ export const resumeData: ResumeData = {
         'LayoutLMv3 + Donut for layout analysis and key-info extraction',
         '90% extraction accuracy, 30% better than OCR + NLP',
         'Applied to real legal and financial forms',
+      ],
+    },
+    {
+      id: '4',
+      title: 'Ecommerce Inventory Management System',
+      description: `A full-stack inventory platform I built end-to-end for 5 stakeholders — schema and backend from
+        scratch, wrapped in a dashboard non-technical users could actually operate. It tightened up their supply-chain
+        pipeline and cut spend that was leaking out of a manual process.`,
+      image: '/portfolio/Inventorymanagement.png',
+      tags: ['Java', 'Spring Boot', 'React.js', 'MySQL', 'AWS', 'Docker'],
+      github: 'https://github.com/abhati27/InventoryWebApp',
+      highlights: [
+        'Engineered a scalable MySQL schema with Spring Boot + Hibernate ORM',
+        'Real-time updates and an analytics dashboard',
+        'Deployed on AWS EC2/RDS with Docker',
+      ],
+    },
+    {
+      id: '5',
+      title: 'ReliaNet',
+      description: `I rebuilt reliable networking from scratch on top of lossy UDP — stop-and-wait ARQ,
+        sequence-numbered ACKs, EWMA-based RTT estimation — basically to understand everything TCP quietly does for
+        you, by doing it myself. Then I hammered it across 50+ scenarios with configurable packet loss and latency to
+        prove it held up.`,
+      image: '/portfolio/relianet.png',
+      tags: ['Python', 'Sockets', 'Binary Protocol Design', 'Multi-process Architecture'],
+      github: 'https://github.com/abhati27/ReliaNet',
+      highlights: [
+        'Stop-and-wait ARQ with sequence-numbered ACKs',
+        'EWMA-based RTT estimation for adaptive timeouts',
+        'Validated across 50+ configurable loss/latency scenarios',
+      ],
+    },
+    {
+      id: '6',
+      title: '15 Puzzle AI Solver',
+      description: `The project that made search algorithms click for me. I implemented IDA* to solve the classic
+        15-puzzle, then pitted two heuristics against each other — Manhattan distance vs. misplaced tiles — across
+        hundreds of configurations to see where each one wins. Every run prints the moves, nodes expanded, time, and
+        memory, so the theory becomes something you can actually watch.`,
+      image: '/portfolio/15Ai.png',
+      tags: ['C', 'IDA*', 'Heuristic Search', 'STL', 'Algorithms'],
+      github: 'https://github.com/abhati27/15puzzle-AI-solver',
+      highlights: [
+        'IDA* search with Manhattan distance and misplaced-tile heuristics',
+        'Benchmarked admissibility vs. efficiency across hundreds of configurations',
+        'Reports move sequence, nodes expanded, time, and memory usage',
       ],
     },
   ],
