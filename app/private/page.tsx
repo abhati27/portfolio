@@ -5,36 +5,87 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * Hidden, client-only screen-share room (no backend).
  *
- * - A shared password gates the page (checked client-side against a SHA-256
- *   hash). NOTE: client-side gating only deters casual visitors — the hash and
- *   logic ship in the bundle, so it is NOT real security. Use a strong password
- *   and treat the URL as semi-secret.
- * - The call itself is peer-to-peer WebRTC. Since there is no signaling server,
- *   the two people exchange a connection "code" once by hand (paste it into any
- *   chat). After that, screen/audio flows directly between the two browsers.
- * - Public STUN is used for NAT traversal (a standard free service, not a
- *   backend you run). Very restrictive networks that need a TURN relay may fail.
+ * Security model — a per-session PIN:
+ *   - The host clicks "Create a room". A random PIN is generated, and the WebRTC
+ *     connection code (the "invite") is ENCRYPTED with a key derived from that
+ *     PIN (PBKDF2 -> AES-256-GCM). The host shares the PIN and the invite code
+ *     with the other person.
+ *   - The guest can only decrypt the invite (and thus join) if they enter the
+ *     correct PIN. A wrong PIN fails decryption — they cannot connect. The reply
+ *     code is encrypted the same way.
+ *   - So no one without the PIN can join. The media itself is always DTLS/SRTP
+ *     encrypted end-to-end by the browser. There is no server: the two people
+ *     exchange the encrypted code by hand (any chat), then media flows directly
+ *     peer-to-peer (public STUN for NAT traversal).
+ *
+ * Best practice: share the PIN over a DIFFERENT channel than the invite code
+ * (e.g. code by email, PIN by text). If someone gets BOTH, they could join.
  */
-
-// SHA-256 of the access password. Default is sha256("changeme").
-// To change it: run  printf 'YOURPASSWORD' | shasum -a 256   and paste the hash.
-const ACCESS_HASH = '057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86';
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
 
-async function sha256Hex(text: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+// ---- PIN + crypto helpers (Web Crypto: PBKDF2 -> AES-256-GCM) ----
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+// Unambiguous alphabet (no 0/O/1/I) for a shareable PIN.
+const PIN_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function generatePin(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  const chars = [...bytes].map((b) => PIN_ALPHABET[b % PIN_ALPHABET.length]);
+  return `${chars.slice(0, 4).join('')}-${chars.slice(4, 8).join('')}-${chars.slice(8, 12).join('')}`;
 }
 
-const encodeDesc = (d: RTCSessionDescription | null) => btoa(JSON.stringify(d));
-const decodeDesc = (code: string) => JSON.parse(atob(code.trim())) as RTCSessionDescriptionInit;
+const b64encode = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
+function b64decode(str: string): Uint8Array {
+  const bin = atob(str.trim());
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
 
-// Wait until ICE candidate gathering finishes (so the whole connection fits in
-// one copy-paste), with a safety timeout for slow/again networks.
+async function deriveKey(pin: string, salt: Uint8Array): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey('raw', enc.encode(pin.trim()), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt as BufferSource, iterations: 150000, hash: 'SHA-256' },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  );
+}
+
+async function encryptWithPin(pin: string, plaintext: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pin, salt);
+  const ct = new Uint8Array(
+    await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv as BufferSource }, key, enc.encode(plaintext)),
+  );
+  const out = new Uint8Array(salt.length + iv.length + ct.length);
+  out.set(salt, 0);
+  out.set(iv, salt.length);
+  out.set(ct, salt.length + iv.length);
+  return b64encode(out);
+}
+
+async function decryptWithPin(pin: string, code: string): Promise<string> {
+  const data = b64decode(code);
+  const salt = data.slice(0, 16);
+  const iv = data.slice(16, 28);
+  const ct = data.slice(28);
+  const key = await deriveKey(pin, salt);
+  const pt = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: iv as BufferSource },
+    key,
+    ct as BufferSource,
+  );
+  return dec.decode(pt);
+}
+
 function waitForIceGathering(pc: RTCPeerConnection, timeoutMs = 3000): Promise<void> {
   if (pc.iceGatheringState === 'complete') return Promise.resolve();
   return new Promise((resolve) => {
@@ -54,16 +105,13 @@ type Role = 'none' | 'host' | 'guest';
 type Status = 'idle' | 'working' | 'awaiting-reply' | 'connecting' | 'connected' | 'failed';
 
 export default function PrivateRoom() {
-  const [unlocked, setUnlocked] = useState(false);
-  const [pw, setPw] = useState('');
-  const [pwError, setPwError] = useState('');
-
   const [role, setRole] = useState<Role>('none');
   const [status, setStatus] = useState<Status>('idle');
-  const [localCode, setLocalCode] = useState(''); // code to send to the other person
-  const [remoteCode, setRemoteCode] = useState(''); // code pasted from the other person
+  const [pin, setPin] = useState('');
+  const [localCode, setLocalCode] = useState('');
+  const [remoteCode, setRemoteCode] = useState('');
   const [sharing, setSharing] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState('');
   const [error, setError] = useState('');
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -72,21 +120,6 @@ export default function PrivateRoom() {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    if (sessionStorage.getItem('pr_ok') === '1') setUnlocked(true);
-  }, []);
-
-  const submitPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPwError('');
-    if ((await sha256Hex(pw)) === ACCESS_HASH) {
-      sessionStorage.setItem('pr_ok', '1');
-      setUnlocked(true);
-    } else {
-      setPwError('Incorrect password.');
-    }
-  };
 
   const teardown = useCallback(() => {
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -102,19 +135,14 @@ export default function PrivateRoom() {
 
   useEffect(() => () => teardown(), [teardown]);
 
-  // Create the peer connection with two pre-negotiated transceivers, so either
-  // side can start/stop screen sharing later via replaceTrack (no renegotiation).
   const createPeer = useCallback(() => {
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     const videoTx = pc.addTransceiver('video', { direction: 'sendrecv' });
     const audioTx = pc.addTransceiver('audio', { direction: 'sendrecv' });
     videoSenderRef.current = videoTx.sender;
     audioSenderRef.current = audioTx.sender;
-
     pc.ontrack = (ev) => {
-      if (remoteVideoRef.current && ev.streams[0]) {
-        remoteVideoRef.current.srcObject = ev.streams[0];
-      }
+      if (remoteVideoRef.current && ev.streams[0]) remoteVideoRef.current.srcObject = ev.streams[0];
     };
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
@@ -125,50 +153,52 @@ export default function PrivateRoom() {
     return pc;
   }, []);
 
-  // HOST: create the invite code.
+  // HOST: generate a PIN + encrypted invite.
   const startHost = async () => {
     try {
       setError('');
+      const newPin = generatePin();
+      setPin(newPin);
       setRole('host');
       setStatus('working');
       const pc = createPeer();
       await pc.setLocalDescription(await pc.createOffer());
       await waitForIceGathering(pc);
-      setLocalCode(encodeDesc(pc.localDescription));
+      setLocalCode(await encryptWithPin(newPin, JSON.stringify(pc.localDescription)));
       setStatus('awaiting-reply');
     } catch (err) {
-      setError('Could not start the call. ' + (err instanceof Error ? err.message : ''));
+      setError('Could not start the room. ' + (err instanceof Error ? err.message : ''));
       setStatus('failed');
     }
   };
 
-  // HOST: apply the reply code from the guest to finish connecting.
+  // HOST: decrypt + apply the guest's reply to finish connecting.
   const applyReply = async () => {
     try {
       setError('');
       setStatus('connecting');
-      await pcRef.current!.setRemoteDescription(decodeDesc(remoteCode));
+      const answer = JSON.parse(await decryptWithPin(pin, remoteCode));
+      await pcRef.current!.setRemoteDescription(answer);
     } catch {
-      setError('That reply code looks invalid. Ask them to copy it again.');
+      setError('Could not read that reply — check the PIN and that the reply code was pasted fully.');
       setStatus('awaiting-reply');
     }
   };
 
-  // GUEST: paste the host's invite code, produce a reply code.
+  // GUEST: decrypt the invite with the PIN, produce an encrypted reply.
   const joinAsGuest = async () => {
     try {
       setError('');
-      setRole('guest');
       setStatus('working');
+      const offer = JSON.parse(await decryptWithPin(pin, remoteCode));
       const pc = createPeer();
-      await pc.setRemoteDescription(decodeDesc(remoteCode));
+      await pc.setRemoteDescription(offer);
       await pc.setLocalDescription(await pc.createAnswer());
       await waitForIceGathering(pc);
-      setLocalCode(encodeDesc(pc.localDescription));
-      setStatus('connecting'); // connects once the host applies this reply
+      setLocalCode(await encryptWithPin(pin, JSON.stringify(pc.localDescription)));
+      setStatus('connecting');
     } catch {
-      setError('That invite code looks invalid. Ask them to copy it again.');
-      setRole('none');
+      setError('Wrong PIN or invalid invite code. Double-check both and try again.');
       setStatus('idle');
     }
   };
@@ -184,10 +214,9 @@ export default function PrivateRoom() {
       if (aTrack) await audioSenderRef.current?.replaceTrack(aTrack);
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
       setSharing(true);
-      // When the user clicks the browser's "Stop sharing" bar.
       vTrack?.addEventListener('ended', stopScreen);
     } catch {
-      // user cancelled the picker — no-op
+      /* user cancelled the picker */
     }
   };
 
@@ -204,41 +233,18 @@ export default function PrivateRoom() {
     teardown();
     setRole('none');
     setStatus('idle');
+    setPin('');
     setLocalCode('');
     setRemoteCode('');
     setError('');
   };
 
-  const copyCode = async () => {
-    await navigator.clipboard.writeText(localCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  const copy = async (text: string, which: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(which);
+    setTimeout(() => setCopied(''), 1500);
   };
 
-  // ---- password screen ----
-  if (!unlocked) {
-    return (
-      <main style={S.page}>
-        <form onSubmit={submitPassword} style={S.gateCard}>
-          <div style={S.lock}>🔒</div>
-          <h1 style={S.gateTitle}>Private Room</h1>
-          <p style={S.gateSub}>Enter the shared password to continue.</p>
-          <input
-            type="password"
-            value={pw}
-            onChange={(e) => setPw(e.target.value)}
-            placeholder="Password"
-            autoFocus
-            style={S.input}
-          />
-          {pwError && <div style={S.err}>{pwError}</div>}
-          <button type="submit" style={S.primaryBtn}>Enter</button>
-        </form>
-      </main>
-    );
-  }
-
-  // ---- room ----
   const statusLabel: Record<Status, string> = {
     idle: 'Not connected',
     working: 'Preparing…',
@@ -252,13 +258,12 @@ export default function PrivateRoom() {
     <main style={S.page}>
       <div style={S.room}>
         <div style={S.header}>
-          <div style={{ fontWeight: 700, fontSize: 18 }}>Private Room</div>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>🔒 Private Room</div>
           <div style={S.statusPill(status)}>
             <span style={S.dot(status)} /> {statusLabel[status]}
           </div>
         </div>
 
-        {/* Video area */}
         <div style={S.videos}>
           <div style={S.videoBox}>
             <video ref={remoteVideoRef} autoPlay playsInline style={S.video} />
@@ -270,7 +275,6 @@ export default function PrivateRoom() {
           </div>
         </div>
 
-        {/* Controls / signaling */}
         {status === 'connected' ? (
           <div style={S.controls}>
             {!sharing ? (
@@ -282,48 +286,52 @@ export default function PrivateRoom() {
           </div>
         ) : role === 'none' ? (
           <div style={S.controls}>
-            <button onClick={startHost} style={S.primaryBtn}>Start a call</button>
-            <button onClick={joinAsGuest} style={S.secondaryBtn} disabled={!remoteCode.trim()}>
-              Join a call
-            </button>
+            <button onClick={startHost} style={S.primaryBtn}>Create a room</button>
+            <button onClick={() => setRole('guest')} style={S.secondaryBtn}>Join a room</button>
             <p style={S.hint}>
-              One person clicks <b>Start a call</b> and sends the code. The other pastes it below
-              and clicks <b>Join a call</b>.
+              One person creates the room and shares the <b>PIN</b> and <b>invite code</b>. The
+              other joins with them. Only someone with the PIN can connect.
             </p>
-            <textarea
-              value={remoteCode}
-              onChange={(e) => setRemoteCode(e.target.value)}
-              placeholder="Paste the invite code here to join…"
-              style={S.textarea}
-            />
+          </div>
+        ) : role === 'host' ? (
+          <div style={S.controls}>
+            <div style={S.pinRow}>
+              <div>
+                <div style={S.label}>PIN — share this with the other person</div>
+                <div style={S.pin}>{pin}</div>
+              </div>
+              <button onClick={() => copy(pin, 'pin')} style={S.secondaryBtn}>{copied === 'pin' ? 'Copied ✓' : 'Copy PIN'}</button>
+            </div>
+
+            <div style={S.label}>1 · Send them this invite code</div>
+            <textarea readOnly value={localCode} style={S.textarea} onFocus={(e) => e.target.select()} />
+            <button onClick={() => copy(localCode, 'code')} style={S.secondaryBtn}>{copied === 'code' ? 'Copied ✓' : 'Copy invite code'}</button>
+
+            <div style={S.label}>2 · Paste their reply code, then connect</div>
+            <textarea value={remoteCode} onChange={(e) => setRemoteCode(e.target.value)} placeholder="Paste the reply code here…" style={S.textarea} />
+            <button onClick={applyReply} style={S.primaryBtn} disabled={!remoteCode.trim()}>Connect</button>
+            <button onClick={hangUp} style={S.linkBtn}>Cancel</button>
           </div>
         ) : (
+          // guest
           <div style={S.controls}>
-            {localCode && (
+            {status === 'connecting' && localCode ? (
               <>
-                <label style={S.label}>
-                  {role === 'host' ? '1 · Send this invite code to them' : 'Send this reply code back to them'}
-                </label>
+                <p style={S.hint}>Send this reply code back to the host. You’ll connect automatically once they paste it.</p>
                 <textarea readOnly value={localCode} style={S.textarea} onFocus={(e) => e.target.select()} />
-                <button onClick={copyCode} style={S.secondaryBtn}>{copied ? 'Copied ✓' : 'Copy code'}</button>
+                <button onClick={() => copy(localCode, 'reply')} style={S.secondaryBtn}>{copied === 'reply' ? 'Copied ✓' : 'Copy reply code'}</button>
+                <button onClick={hangUp} style={S.linkBtn}>Cancel</button>
               </>
-            )}
-            {role === 'host' && (
+            ) : (
               <>
-                <label style={S.label}>2 · Paste their reply code, then connect</label>
-                <textarea
-                  value={remoteCode}
-                  onChange={(e) => setRemoteCode(e.target.value)}
-                  placeholder="Paste the reply code here…"
-                  style={S.textarea}
-                />
-                <button onClick={applyReply} style={S.primaryBtn} disabled={!remoteCode.trim()}>Connect</button>
+                <div style={S.label}>PIN (from the host)</div>
+                <input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="XXXX-XXXX-XXXX" style={S.input} />
+                <div style={S.label}>Invite code (from the host)</div>
+                <textarea value={remoteCode} onChange={(e) => setRemoteCode(e.target.value)} placeholder="Paste the invite code here…" style={S.textarea} />
+                <button onClick={joinAsGuest} style={S.primaryBtn} disabled={!pin.trim() || !remoteCode.trim()}>Join</button>
+                <button onClick={hangUp} style={S.linkBtn}>Back</button>
               </>
             )}
-            {role === 'guest' && status === 'connecting' && (
-              <p style={S.hint}>Reply code ready — send it to the other person. You’ll connect automatically once they paste it.</p>
-            )}
-            <button onClick={hangUp} style={S.linkBtn}>Cancel</button>
           </div>
         )}
 
@@ -333,7 +341,6 @@ export default function PrivateRoom() {
   );
 }
 
-// ---- inline styles (self-contained dark theme) ----
 const RED = '#e11d2a';
 const S: Record<string, any> = {
   page: {
@@ -341,93 +348,32 @@ const S: Record<string, any> = {
     background: 'radial-gradient(1200px 600px at 70% -10%, #2a0d12 0%, #0b0d12 55%)',
     color: '#e6e9ef',
     fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
     padding: '24px 16px',
   },
-  gateCard: {
-    marginTop: '12vh',
-    width: 'min(380px, 92vw)',
-    background: '#12151c',
-    border: '1px solid #232833',
-    borderRadius: 16,
-    padding: 28,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-    boxShadow: '0 20px 60px rgba(0,0,0,.5)',
-  },
-  lock: { fontSize: 30, textAlign: 'center' },
-  gateTitle: { margin: 0, fontSize: 22, textAlign: 'center' },
-  gateSub: { margin: 0, textAlign: 'center', color: '#8b93a1', fontSize: 14 },
-  room: {
-    width: 'min(920px, 96vw)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
+  room: { width: 'min(920px, 96vw)', display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  videos: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: 12,
-  },
-  videoBox: {
-    position: 'relative',
-    aspectRatio: '16 / 9',
-    background: '#0a0c11',
-    border: '1px solid #232833',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
+  videos: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 },
+  videoBox: { position: 'relative', aspectRatio: '16 / 9', background: '#0a0c11', border: '1px solid #232833', borderRadius: 12, overflow: 'hidden' },
   video: { width: '100%', height: '100%', objectFit: 'contain', background: '#000' },
-  videoTag: {
-    position: 'absolute', bottom: 8, left: 8, fontSize: 12,
-    background: 'rgba(0,0,0,.6)', padding: '3px 8px', borderRadius: 6,
-  },
-  controls: {
-    display: 'flex', flexDirection: 'column', gap: 10,
-    background: '#12151c', border: '1px solid #232833', borderRadius: 12, padding: 16,
-  },
+  videoTag: { position: 'absolute', bottom: 8, left: 8, fontSize: 12, background: 'rgba(0,0,0,.6)', padding: '3px 8px', borderRadius: 6 },
+  controls: { display: 'flex', flexDirection: 'column', gap: 10, background: '#12151c', border: '1px solid #232833', borderRadius: 12, padding: 16 },
+  pinRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
+  pin: { fontSize: 26, fontWeight: 800, letterSpacing: 2, fontFamily: 'ui-monospace, monospace', color: '#ff8a8a' },
   label: { fontSize: 13, color: '#8b93a1', fontWeight: 600 },
   hint: { fontSize: 13, color: '#8b93a1', margin: '2px 0' },
-  input: {
-    padding: '11px 14px', borderRadius: 10, border: '1px solid #2b3240',
-    background: '#0b0d12', color: '#e6e9ef', fontSize: 15, outline: 'none',
-  },
-  textarea: {
-    width: '100%', minHeight: 70, resize: 'vertical', padding: '10px 12px',
-    borderRadius: 10, border: '1px solid #2b3240', background: '#0b0d12',
-    color: '#cdd3dd', fontSize: 12, fontFamily: 'ui-monospace, monospace', outline: 'none',
-    boxSizing: 'border-box',
-  },
-  primaryBtn: {
-    padding: '11px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-    background: `linear-gradient(135deg, #ff4d4d, ${RED})`, color: '#fff', fontWeight: 700, fontSize: 15,
-  },
-  secondaryBtn: {
-    padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-    background: '#1b2029', color: '#e6e9ef', border: '1px solid #2b3240', fontWeight: 600, fontSize: 15,
-  },
-  dangerBtn: {
-    padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-    background: 'transparent', color: '#ff6b6b', border: '1px solid #5a2b2b', fontWeight: 600, fontSize: 15,
-  },
-  linkBtn: {
-    padding: '6px', borderRadius: 8, cursor: 'pointer',
-    background: 'transparent', color: '#8b93a1', border: 'none', fontSize: 13, alignSelf: 'flex-start',
-  },
+  input: { padding: '11px 14px', borderRadius: 10, border: '1px solid #2b3240', background: '#0b0d12', color: '#e6e9ef', fontSize: 16, letterSpacing: 1, outline: 'none', fontFamily: 'ui-monospace, monospace' },
+  textarea: { width: '100%', minHeight: 70, resize: 'vertical', padding: '10px 12px', borderRadius: 10, border: '1px solid #2b3240', background: '#0b0d12', color: '#cdd3dd', fontSize: 12, fontFamily: 'ui-monospace, monospace', outline: 'none', boxSizing: 'border-box' },
+  primaryBtn: { padding: '11px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, #ff4d4d, ${RED})`, color: '#fff', fontWeight: 700, fontSize: 15 },
+  secondaryBtn: { padding: '11px 16px', borderRadius: 10, cursor: 'pointer', background: '#1b2029', color: '#e6e9ef', border: '1px solid #2b3240', fontWeight: 600, fontSize: 15 },
+  dangerBtn: { padding: '11px 16px', borderRadius: 10, cursor: 'pointer', background: 'transparent', color: '#ff6b6b', border: '1px solid #5a2b2b', fontWeight: 600, fontSize: 15 },
+  linkBtn: { padding: '6px', borderRadius: 8, cursor: 'pointer', background: 'transparent', color: '#8b93a1', border: 'none', fontSize: 13, alignSelf: 'flex-start' },
   err: { color: '#ff8a8a', fontSize: 13 },
   statusPill: (s: Status) => ({
-    display: 'flex', alignItems: 'center', gap: 7, fontSize: 13,
-    padding: '5px 12px', borderRadius: 999,
+    display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, padding: '5px 12px', borderRadius: 999,
     background: s === 'connected' ? 'rgba(46,160,90,.15)' : '#12151c',
     border: `1px solid ${s === 'connected' ? '#2ea05a' : '#232833'}`,
     color: s === 'connected' ? '#5bd08a' : '#8b93a1',
   }),
-  dot: (s: Status) => ({
-    width: 8, height: 8, borderRadius: 999,
-    background: s === 'connected' ? '#2ea05a' : s === 'failed' ? '#e11d2a' : '#8b93a1',
-  }),
+  dot: (s: Status) => ({ width: 8, height: 8, borderRadius: 999, background: s === 'connected' ? '#2ea05a' : s === 'failed' ? '#e11d2a' : '#8b93a1' }),
 };
