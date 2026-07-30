@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * Hidden, client-only screen-share room (no backend).
+ * Hidden, client-only video call + screen-share room (no backend).
  *
  * Security model — a per-session PIN:
  *   - The host clicks "Create a room". A random PIN is generated, and the WebRTC
@@ -17,6 +17,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  *     encrypted end-to-end by the browser. There is no server: the two people
  *     exchange the encrypted code by hand (any chat), then media flows directly
  *     peer-to-peer (public STUN for NAT traversal).
+ *
+ * Media model:
+ *   - Camera + mic are requested when you create/join, so both directions are
+ *     negotiated sendrecv from the start. If you decline (or have no camera),
+ *     you can still receive and screen-share.
+ *   - Screen share swaps the outgoing video track (camera <-> screen) via
+ *     replaceTrack, so it needs no renegotiation.
  *
  * Best practice: share the PIN over a DIFFERENT channel than the invite code
  * (e.g. code by email, PIN by text). If someone gets BOTH, they could join.
@@ -111,19 +118,27 @@ export default function PrivateRoom() {
   const [localCode, setLocalCode] = useState('');
   const [remoteCode, setRemoteCode] = useState('');
   const [sharing, setSharing] = useState(false);
+  const [camOn, setCamOn] = useState(true);
+  const [micOn, setMicOn] = useState(true);
+  const [mediaReady, setMediaReady] = useState(true); // false => cam/mic denied or absent
   const [copied, setCopied] = useState('');
   const [error, setError] = useState('');
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const videoSenderRef = useRef<RTCRtpSender | null>(null);
   const audioSenderRef = useRef<RTCRtpSender | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null); // camera + mic
   const screenStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const teardown = useCallback(() => {
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
     screenStreamRef.current = null;
+    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    localStreamRef.current = null;
+    remoteStreamRef.current = null;
     pcRef.current?.close();
     pcRef.current = null;
     videoSenderRef.current = null;
@@ -131,18 +146,51 @@ export default function PrivateRoom() {
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     setSharing(false);
+    setCamOn(true);
+    setMicOn(true);
+    setMediaReady(true);
   }, []);
 
   useEffect(() => () => teardown(), [teardown]);
 
-  const createPeer = useCallback(() => {
+  // Ask for camera + mic. Failing is fine (denied / no device): the call still
+  // works receive-only, and screen share still works.
+  const initLocalMedia = useCallback(async (): Promise<MediaStream | null> => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = stream;
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      setMediaReady(true);
+      return stream;
+    } catch {
+      setMediaReady(false);
+      return null;
+    }
+  }, []);
+
+  // Build the peer connection. Camera/mic tracks are added via addTrack so the
+  // guest's tracks associate with the host's offer m-lines (addTransceiver-made
+  // transceivers are NOT eligible for that per JSEP — the earlier one-way bug).
+  const createPeer = useCallback((localStream: MediaStream | null, isHost: boolean) => {
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-    const videoTx = pc.addTransceiver('video', { direction: 'sendrecv' });
-    const audioTx = pc.addTransceiver('audio', { direction: 'sendrecv' });
-    videoSenderRef.current = videoTx.sender;
-    audioSenderRef.current = audioTx.sender;
+    remoteStreamRef.current = new MediaStream();
+
+    if (localStream) {
+      localStream.getTracks().forEach((t) => pc.addTrack(t, localStream));
+    } else if (isHost) {
+      // No local media on the host: still negotiate two-way channels so the
+      // guest can send and we can screen-share later.
+      pc.addTransceiver('video', { direction: 'sendrecv' });
+      pc.addTransceiver('audio', { direction: 'sendrecv' });
+    }
+
     pc.ontrack = (ev) => {
-      if (remoteVideoRef.current && ev.streams[0]) remoteVideoRef.current.srcObject = ev.streams[0];
+      // Build the remote stream track-by-track: works even when the sender
+      // negotiated without a stream id (ev.streams empty — the black-box bug).
+      remoteStreamRef.current?.addTrack(ev.track);
+      if (remoteVideoRef.current && remoteVideoRef.current.srcObject !== remoteStreamRef.current) {
+        remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      }
     };
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
@@ -153,6 +201,15 @@ export default function PrivateRoom() {
     return pc;
   }, []);
 
+  // After the SDP is set up, grab the negotiated senders for later replaceTrack.
+  const captureSenders = (pc: RTCPeerConnection) => {
+    for (const t of pc.getTransceivers()) {
+      const kind = t.receiver.track?.kind;
+      if (kind === 'video' && !videoSenderRef.current) videoSenderRef.current = t.sender;
+      if (kind === 'audio' && !audioSenderRef.current) audioSenderRef.current = t.sender;
+    }
+  };
+
   // HOST: generate a PIN + encrypted invite.
   const startHost = async () => {
     try {
@@ -161,9 +218,11 @@ export default function PrivateRoom() {
       setPin(newPin);
       setRole('host');
       setStatus('working');
-      const pc = createPeer();
+      const stream = await initLocalMedia();
+      const pc = createPeer(stream, true);
       await pc.setLocalDescription(await pc.createOffer());
       await waitForIceGathering(pc);
+      captureSenders(pc);
       setLocalCode(await encryptWithPin(newPin, JSON.stringify(pc.localDescription)));
       setStatus('awaiting-reply');
     } catch (err) {
@@ -191,10 +250,16 @@ export default function PrivateRoom() {
       setError('');
       setStatus('working');
       const offer = JSON.parse(await decryptWithPin(pin, remoteCode));
-      const pc = createPeer();
+      const stream = await initLocalMedia();
+      const pc = createPeer(stream, false);
       await pc.setRemoteDescription(offer);
+      // Advertise sendrecv even without local tracks, so screen share works later.
+      for (const t of pc.getTransceivers()) {
+        try { t.direction = 'sendrecv'; } catch { /* ignore */ }
+      }
       await pc.setLocalDescription(await pc.createAnswer());
       await waitForIceGathering(pc);
+      captureSenders(pc);
       setLocalCode(await encryptWithPin(pin, JSON.stringify(pc.localDescription)));
       setStatus('connecting');
     } catch {
@@ -206,15 +271,14 @@ export default function PrivateRoom() {
   const shareScreen = async () => {
     try {
       setError('');
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       screenStreamRef.current = stream;
-      const vTrack = stream.getVideoTracks()[0];
-      const aTrack = stream.getAudioTracks()[0];
-      if (vTrack) await videoSenderRef.current?.replaceTrack(vTrack);
-      if (aTrack) await audioSenderRef.current?.replaceTrack(aTrack);
+      const track = stream.getVideoTracks()[0];
+      await videoSenderRef.current?.replaceTrack(track);
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
       setSharing(true);
-      vTrack?.addEventListener('ended', stopScreen);
+      // When the user clicks the browser's own "Stop sharing" bar.
+      track.addEventListener('ended', stopScreen);
     } catch {
       /* user cancelled the picker */
     }
@@ -223,10 +287,25 @@ export default function PrivateRoom() {
   const stopScreen = async () => {
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
     screenStreamRef.current = null;
-    await videoSenderRef.current?.replaceTrack(null);
-    await audioSenderRef.current?.replaceTrack(null);
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    // Swap the camera back in (or nothing if there is no camera).
+    const camTrack = localStreamRef.current?.getVideoTracks()[0] ?? null;
+    await videoSenderRef.current?.replaceTrack(camTrack);
+    if (localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
     setSharing(false);
+  };
+
+  const toggleCam = () => {
+    const track = localStreamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+    track.enabled = !track.enabled;
+    setCamOn(track.enabled);
+  };
+
+  const toggleMic = () => {
+    const track = localStreamRef.current?.getAudioTracks()[0];
+    if (!track) return;
+    track.enabled = !track.enabled;
+    setMicOn(track.enabled);
   };
 
   const hangUp = () => {
@@ -271,18 +350,32 @@ export default function PrivateRoom() {
           </div>
           <div style={S.videoBox}>
             <video ref={localVideoRef} autoPlay playsInline muted style={S.video} />
-            <div style={S.videoTag}>You{sharing ? ' · sharing' : ''}</div>
+            <div style={S.videoTag}>You{sharing ? ' · sharing screen' : ''}{!camOn && !sharing ? ' · camera off' : ''}</div>
           </div>
         </div>
 
+        {!mediaReady && role !== 'none' && (
+          <div style={S.hint}>
+            Camera/mic unavailable or denied — you can still see and hear them, and share your screen.
+          </div>
+        )}
+
         {status === 'connected' ? (
           <div style={S.controls}>
-            {!sharing ? (
-              <button onClick={shareScreen} style={S.primaryBtn}>🖥️ Share my screen</button>
-            ) : (
-              <button onClick={stopScreen} style={S.secondaryBtn}>Stop sharing</button>
-            )}
-            <button onClick={hangUp} style={S.dangerBtn}>Hang up</button>
+            <div style={S.btnRow}>
+              {!sharing ? (
+                <button onClick={shareScreen} style={S.primaryBtn}>🖥️ Share screen</button>
+              ) : (
+                <button onClick={stopScreen} style={S.secondaryBtn}>Stop sharing</button>
+              )}
+              <button onClick={toggleCam} style={S.secondaryBtn} disabled={!localStreamRef.current}>
+                {camOn ? '📷 Camera off' : '📷 Camera on'}
+              </button>
+              <button onClick={toggleMic} style={S.secondaryBtn} disabled={!localStreamRef.current}>
+                {micOn ? '🎙️ Mute' : '🎙️ Unmute'}
+              </button>
+              <button onClick={hangUp} style={S.dangerBtn}>Hang up</button>
+            </div>
           </div>
         ) : role === 'none' ? (
           <div style={S.controls}>
@@ -290,7 +383,8 @@ export default function PrivateRoom() {
             <button onClick={() => setRole('guest')} style={S.secondaryBtn}>Join a room</button>
             <p style={S.hint}>
               One person creates the room and shares the <b>PIN</b> and <b>invite code</b>. The
-              other joins with them. Only someone with the PIN can connect.
+              other joins with them. Only someone with the PIN can connect. Your browser will ask
+              for camera & mic when you start.
             </p>
           </div>
         ) : role === 'host' ? (
@@ -358,6 +452,7 @@ const S: Record<string, any> = {
   video: { width: '100%', height: '100%', objectFit: 'contain', background: '#000' },
   videoTag: { position: 'absolute', bottom: 8, left: 8, fontSize: 12, background: 'rgba(0,0,0,.6)', padding: '3px 8px', borderRadius: 6 },
   controls: { display: 'flex', flexDirection: 'column', gap: 10, background: '#12151c', border: '1px solid #232833', borderRadius: 12, padding: 16 },
+  btnRow: { display: 'flex', gap: 10, flexWrap: 'wrap' },
   pinRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   pin: { fontSize: 26, fontWeight: 800, letterSpacing: 2, fontFamily: 'ui-monospace, monospace', color: '#ff8a8a' },
   label: { fontSize: 13, color: '#8b93a1', fontWeight: 600 },
