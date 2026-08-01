@@ -23,7 +23,7 @@ const SUGGESTED_PROMPTS = [
   "What are your technical skills and certifications?",
 ];
 
-const GREETING = "👋 Hi there, I'm Anmol Vijay Bhatia — Software Engineer focused on AI/ML Enablement at Incedo Inc.\n\n🏆 Two-time recipient of the R&R Individual Excellence Award (2024 & 2025)\n☁️ AWS Certified Cloud Practitioner\n🎓 Incoming MS in Artificial Intelligence at NJIT\n\nFeel free to ask me about my experience, projects, skills, awards, or anything you'd like to know about my professional journey!";
+const GREETING = "Hey, I'm Anmol — Software Engineer focused on AI/ML Enablement at Incedo Inc. Two-time recipient of the R&R Individual Excellence Award, AWS Certified Cloud Practitioner, and about to start my MS in Artificial Intelligence at NJIT.\n\nAsk me anything about my experience, projects, skills, or the road that got me here.";
 
 function ChatPageContent() {
   const searchParams = useSearchParams();

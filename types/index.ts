@@ -2,7 +2,6 @@ export type Theme = 'empire' | 'jedi' | 'outerrim' | 'hyperspace';
 
 export interface ThemeConfig {
   name: string;
-  icon: string;
   description: string;
   colors: {
     primary: string;

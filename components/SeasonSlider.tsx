@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Theme } from '@/types';
 import { themes } from '@/lib/themes';
+import { themeIcons } from '@/lib/theme-icons';
 import { track } from '@/lib/analytics';
 
 export default function ThemeSlider() {
@@ -26,40 +27,43 @@ export default function ThemeSlider() {
         Theme:
       </span>
       <div className="flex gap-1 sm:gap-2">
-        {themeNames.map((t) => (
-          <motion.button
-            key={t}
-            onClick={() => {
-              track('theme_changed', { theme: t });
-              setThemeName(t);
-            }}
-            className="relative px-3 sm:px-4 py-2.5 lg:py-1.5 min-h-[44px] lg:min-h-0 flex items-center justify-center rounded-full text-xs font-bold uppercase tracking-wide transition-all"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={{
-              background: themeName === t ? theme.buttonGradient : 'transparent',
-              color: themeName === t ? 'white' : theme.colors.foreground,
-              boxShadow: themeName === t ? `0 0 15px ${theme.colors.primary}40` : 'none',
-            }}
-          >
-            {themeName === t && (
-              <motion.div
-                layoutId="theme-indicator"
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: theme.buttonGradient,
-                  boxShadow: `0 0 20px ${theme.colors.primary}50`,
-                }}
-                initial={false}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              />
-            )}
-            <span className="relative z-10 flex items-center gap-1.5">
-              <span>{themes[t].icon}</span>
-              <span className="hidden lg:inline">{themes[t].name}</span>
-            </span>
-          </motion.button>
-        ))}
+        {themeNames.map((t) => {
+          const Icon = themeIcons[t];
+          return (
+            <motion.button
+              key={t}
+              onClick={() => {
+                track('theme_changed', { theme: t });
+                setThemeName(t);
+              }}
+              className="relative px-3 sm:px-4 py-2.5 lg:py-1.5 min-h-[44px] lg:min-h-0 flex items-center justify-center rounded-full text-xs font-bold uppercase tracking-wide transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                background: themeName === t ? theme.buttonGradient : 'transparent',
+                color: themeName === t ? 'white' : theme.colors.foreground,
+                boxShadow: themeName === t ? `0 0 15px ${theme.colors.primary}40` : 'none',
+              }}
+            >
+              {themeName === t && (
+                <motion.div
+                  layoutId="theme-indicator"
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: theme.buttonGradient,
+                    boxShadow: `0 0 20px ${theme.colors.primary}50`,
+                  }}
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="hidden lg:inline">{themes[t].name}</span>
+              </span>
+            </motion.button>
+          );
+        })}
       </div>
     </div>
   );

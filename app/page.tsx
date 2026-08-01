@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { MessageCircle, Download, Briefcase, Code, GraduationCap, Award, Send, Github, Linkedin, Mail, Phone, Trophy, Heart, Star, Bot, Sparkles } from 'lucide-react';
+import { MessageCircle, Download, Briefcase, Code, GraduationCap, Award, Send, Github, Linkedin, Mail, Phone, Trophy, Heart, Star, Bot, Sparkles, Brain } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { resumeData, additionalInfo } from '@/lib/resume-data';
 import { getImagePath } from '@/lib/utils';
@@ -200,37 +200,30 @@ export default function PortfolioPage() {
                   {/* Suggested Prompts - Horizontal Scroll */}
                   <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-hide pb-2">
                     {[
-                      "🏆 Excellence Award",
-                      "🤖 AI Projects",
-                      "🧠 AI/ML Enablement Role",
-                      "💻 Tech Stack",
-                    ].map((prompt, idx) => {
-                      const fullPrompts = [
-                        "Tell me about your R&R Awards at Incedo",
-                        "What AI solutions have you built?",
-                        "Tell me about your AI/ML Enablement role",
-                        "What are your technical skills and certifications?",
-                      ];
-                      return (
-                        <motion.button
-                          key={prompt}
-                          onClick={() => {
-                            track('ai_twin_prompt_clicked', { prompt: fullPrompts[idx], source: 'home' });
-                            router.push(`/chat?message=${encodeURIComponent(fullPrompts[idx])}`);
-                          }}
-                          className="px-3.5 py-2.5 min-h-[44px] flex items-center rounded-full text-xs backdrop-blur-sm shadow-sm hover:shadow-md transition-all whitespace-nowrap flex-shrink-0"
-                          style={{
-                            background: theme.colors.cardBg,
-                            borderColor: theme.colors.border,
-                            borderWidth: 1,
-                          }}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <span style={{ color: theme.colors.foreground }}>{prompt}</span>
-                        </motion.button>
-                      );
-                    })}
+                      { label: 'Excellence Award', icon: Trophy, question: 'Tell me about your R&R Awards at Incedo' },
+                      { label: 'AI Projects', icon: Bot, question: 'What AI solutions have you built?' },
+                      { label: 'AI/ML Enablement Role', icon: Brain, question: 'Tell me about your AI/ML Enablement role' },
+                      { label: 'Tech Stack', icon: Code, question: 'What are your technical skills and certifications?' },
+                    ].map(({ label, icon: PromptIcon, question }) => (
+                      <motion.button
+                        key={label}
+                        onClick={() => {
+                          track('ai_twin_prompt_clicked', { prompt: question, source: 'home' });
+                          router.push(`/chat?message=${encodeURIComponent(question)}`);
+                        }}
+                        className="px-3.5 py-2.5 min-h-[44px] flex items-center gap-1.5 rounded-full text-xs backdrop-blur-sm shadow-sm hover:shadow-md transition-all whitespace-nowrap flex-shrink-0"
+                        style={{
+                          background: theme.colors.cardBg,
+                          borderColor: theme.colors.border,
+                          borderWidth: 1,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <PromptIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: theme.colors.primary }} />
+                        <span style={{ color: theme.colors.foreground }}>{label}</span>
+                      </motion.button>
+                    ))}
                   </div>
                 </motion.div>
 
@@ -739,7 +732,7 @@ export default function PortfolioPage() {
           className="absolute right-20 top-1/2 -translate-y-1/2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl backdrop-blur-sm"
           style={{ background: theme.colors.cardBg }}
         >
-          <span style={{ color: theme.colors.foreground }}>Ask my AI twin 🤖</span>
+          <span style={{ color: theme.colors.foreground }}>Ask my AI twin</span>
         </div>
 
         <motion.button

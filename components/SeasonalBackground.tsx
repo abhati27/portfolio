@@ -1,9 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Wrench } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Theme } from '@/types';
 import { useEffect, useState, memo } from 'react';
+import TieFighterIcon from '@/components/icons/TieFighterIcon';
 
 const EmpireParticles = memo(() => {
   const [dimensions, setDimensions] = useState({ width: 1920, height: 1080 });
@@ -16,8 +18,6 @@ const EmpireParticles = memo(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const particles = ['🛸', '🌟', '💥', '🔴'];
 
   return (
     <>
@@ -41,28 +41,28 @@ const EmpireParticles = memo(() => {
           }}
         />
       ))}
-      {/* Floating emojis */}
-      {[...Array(8)].map((_, i) => (
+      {/* Drifting TIE fighter silhouettes */}
+      {[...Array(6)].map((_, i) => (
         <motion.div
-          key={`emoji-${i}`}
-          className="absolute text-3xl opacity-20"
+          key={`tie-${i}`}
+          className="absolute text-red-500 opacity-10"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
           }}
           animate={{
             y: [0, -30, 0],
-            rotate: [0, 360],
-            opacity: [0.1, 0.3, 0.1],
+            rotate: [0, 15, -15, 0],
+            opacity: [0.06, 0.16, 0.06],
           }}
           transition={{
-            duration: Math.random() * 10 + 10,
+            duration: Math.random() * 10 + 12,
             repeat: Infinity,
             delay: Math.random() * 5,
             ease: 'linear',
           }}
         >
-          {particles[i % particles.length]}
+          <TieFighterIcon className="w-8 h-8" />
         </motion.div>
       ))}
     </>
@@ -71,8 +71,6 @@ const EmpireParticles = memo(() => {
 EmpireParticles.displayName = 'EmpireParticles';
 
 const JediParticles = memo(() => {
-  const particles = ['✨', '🪐', '🕊️', '🌿'];
-
   return (
     <>
       {/* Light rays */}
@@ -95,14 +93,18 @@ const JediParticles = memo(() => {
           }}
         />
       ))}
-      {/* Floating particles */}
+      {/* Soft floating light orbs */}
       {[...Array(15)].map((_, i) => (
         <motion.div
-          key={`particle-${i}`}
-          className="absolute text-2xl opacity-40"
+          key={`orb-${i}`}
+          className="absolute rounded-full"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
+            width: 6,
+            height: 6,
+            background: 'radial-gradient(circle, rgba(255,215,120,0.9) 0%, rgba(255,215,120,0) 70%)',
+            filter: 'blur(1px)',
           }}
           animate={{
             y: [0, -20, 0],
@@ -114,9 +116,7 @@ const JediParticles = memo(() => {
             delay: Math.random() * 3,
             ease: 'easeInOut',
           }}
-        >
-          {particles[i % particles.length]}
-        </motion.div>
+        />
       ))}
     </>
   );
@@ -130,15 +130,13 @@ const OuterRimParticles = memo(() => {
     setDimensions({ width: window.innerWidth, height: window.innerHeight });
   }, []);
 
-  const particles = ['🛰️', '🔧', '🪨', '🌌'];
-
   return (
     <>
-      {/* Asteroids and debris */}
-      {[...Array(12)].map((_, i) => (
+      {/* Drifting mechanical debris */}
+      {[...Array(10)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute text-3xl opacity-30"
+          className="absolute text-orange-500 opacity-20"
           initial={{
             x: -50,
             y: Math.random() * dimensions.height,
@@ -155,7 +153,7 @@ const OuterRimParticles = memo(() => {
             ease: 'linear',
           }}
         >
-          {particles[i % particles.length]}
+          <Wrench className="w-6 h-6" />
         </motion.div>
       ))}
     </>
@@ -169,8 +167,6 @@ const HyperspaceParticles = memo(() => {
   useEffect(() => {
     setDimensions({ width: window.innerWidth, height: window.innerHeight });
   }, []);
-
-  const particles = ['🌠', '✨', '🪐', '🚀'];
 
   return (
     <>
@@ -196,11 +192,17 @@ const HyperspaceParticles = memo(() => {
           }}
         />
       ))}
-      {/* Particles */}
+      {/* Comet heads */}
       {[...Array(10)].map((_, i) => (
         <motion.div
-          key={`particle-${i}`}
-          className="absolute text-2xl"
+          key={`comet-${i}`}
+          className="absolute rounded-full"
+          style={{
+            width: 5,
+            height: 5,
+            background: 'radial-gradient(circle, #fff 0%, #00D9FF 60%, transparent 100%)',
+            boxShadow: '0 0 8px 2px rgba(0, 217, 255, 0.8)',
+          }}
           initial={{
             x: -50,
             y: Math.random() * dimensions.height,
@@ -216,9 +218,7 @@ const HyperspaceParticles = memo(() => {
             delay: Math.random() * 2,
             ease: 'linear',
           }}
-        >
-          {particles[i % particles.length]}
-        </motion.div>
+        />
       ))}
     </>
   );

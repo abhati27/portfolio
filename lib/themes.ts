@@ -3,7 +3,6 @@ import { Theme, ThemeConfig } from '@/types';
 export const themes: Record<Theme, ThemeConfig> = {
   empire: {
     name: 'Galactic Empire',
-    icon: '🟥',
     description: 'Dark Futurism',
     colors: {
       primary: '#FF1744',
@@ -22,7 +21,6 @@ export const themes: Record<Theme, ThemeConfig> = {
   },
   jedi: {
     name: 'Jedi Temple',
-    icon: '🪶',
     description: 'Peaceful & Mystic',
     colors: {
       primary: '#CA8A04',
@@ -41,7 +39,6 @@ export const themes: Record<Theme, ThemeConfig> = {
   },
   outerrim: {
     name: 'Outer Rim',
-    icon: '🛠️',
     description: 'Rebel Industrial',
     colors: {
       primary: '#DC6B2F',
@@ -60,7 +57,6 @@ export const themes: Record<Theme, ThemeConfig> = {
   },
   hyperspace: {
     name: 'Hyperspace',
-    icon: '🌠',
     description: 'Futuristic Energy',
     colors: {
       primary: '#00D9FF',
@@ -78,15 +74,4 @@ export const themes: Record<Theme, ThemeConfig> = {
     textGradient: 'linear-gradient(135deg, #00D9FF 0%, #A78BFA 100%)',
   },
 };
-
-export const getThemeEmoji = (theme: Theme): string => {
-  const emojis = {
-    empire: '🟥',
-    jedi: '🪶',
-    outerrim: '🛠️',
-    hyperspace: '🌠',
-  };
-  return emojis[theme];
-};
-
 
