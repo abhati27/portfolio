@@ -196,7 +196,7 @@ function ChatPageContent() {
 
             <motion.button
               onClick={() => router.push('/')}
-              className="flex items-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full text-white font-medium shadow-lg flex-shrink-0 whitespace-nowrap"
+              className="flex items-center gap-2 px-3 sm:px-6 py-3 rounded-full text-white font-medium shadow-lg flex-shrink-0 whitespace-nowrap"
               style={{ background: theme.buttonGradient }}
               whileHover={{ scale: 1.05, boxShadow: `0 10px 30px ${theme.colors.primary}40` }}
               whileTap={{ scale: 0.95 }}
@@ -210,7 +210,7 @@ function ChatPageContent() {
       </header>
 
       {/* Chat Container */}
-      <main className="pt-24 pb-32 px-4 relative z-10">
+      <main className="pt-20 sm:pt-24 pb-28 sm:pb-32 px-3 sm:px-4 relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="space-y-6 mb-6">
             {messages.map((message, index) => (
@@ -226,7 +226,7 @@ function ChatPageContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-8"
+              className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 mt-6 sm:mt-8"
             >
               {SUGGESTED_PROMPTS.map((prompt) => (
                 <motion.button
@@ -251,21 +251,21 @@ function ChatPageContent() {
 
       {/* Input Bar */}
       <div
-        className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur-md border-t z-40"
+        className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 backdrop-blur-md border-t z-40"
         style={{
           backgroundColor: `${theme.colors.background}60`,
           borderColor: `${theme.colors.border}40`,
         }}
       >
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <div className="flex-1 relative">
+        <div className="max-w-4xl mx-auto flex items-center gap-2 sm:gap-4">
+          <div className="flex-1 min-w-0 relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me about my experience, projects, or resume..."
-              className="w-full px-6 py-4 rounded-full backdrop-blur-sm shadow-lg outline-none transition-all"
+              placeholder="Ask me anything…"
+              className="w-full px-4 sm:px-6 py-3.5 sm:py-4 rounded-full backdrop-blur-sm shadow-lg outline-none transition-all text-base"
               style={{
                 background: theme.colors.cardBg,
                 borderColor: theme.colors.border,
@@ -279,10 +279,11 @@ function ChatPageContent() {
           <motion.button
             onClick={() => handleSendMessage()}
             disabled={!input.trim() || isLoading}
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label="Send message"
           >
             <Send className="w-5 h-5 text-white" />
           </motion.button>
@@ -291,7 +292,8 @@ function ChatPageContent() {
             href={getImagePath("/resume.pdf")}
             download="Anmol_Bhatia_Resume.pdf"
             onClick={() => track('resume_downloaded', { source: 'chat' })}
-            className="flex items-center gap-2 px-6 py-4 rounded-full text-white font-medium shadow-lg"
+            aria-label="Download Resume"
+            className="flex items-center justify-center gap-2 w-12 h-12 sm:w-auto sm:h-auto sm:px-6 sm:py-4 rounded-full text-white font-medium shadow-lg flex-shrink-0"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

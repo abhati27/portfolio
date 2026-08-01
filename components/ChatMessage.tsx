@@ -33,7 +33,7 @@ export default function ChatMessage({ message, index }: ChatMessageProps) {
         </div>
       )}
       
-      <div className={`flex flex-col max-w-[70%] ${isAI ? 'items-start' : 'items-end'}`}>
+      <div className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${isAI ? 'items-start' : 'items-end'}`}>
         <div
           className="px-4 py-3 rounded-2xl shadow-md backdrop-blur-sm prose prose-sm max-w-none"
           style={{

@@ -63,7 +63,8 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                   e.stopPropagation();
                   setIsModalOpen(true);
                 }}
-                className="absolute top-3 right-3 p-2 rounded-lg backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                aria-label={`Expand ${project.title} image`}
+                className="absolute top-3 right-3 p-3 rounded-lg backdrop-blur-md shadow-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10"
                 style={{ 
                   background: `${theme.colors.background}80`,
                   borderColor: theme.colors.primary,
@@ -147,7 +148,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => track('project_clicked', { title: project.title, type: 'github', url: project.github })}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md"
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-white shadow-md"
               style={{ background: theme.buttonGradient }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -162,7 +163,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => track('project_clicked', { title: project.title, type: 'link', url: project.link })}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium"
               style={{
                 background: `${theme.colors.primary}20`,
                 color: theme.colors.foreground,

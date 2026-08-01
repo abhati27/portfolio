@@ -33,7 +33,7 @@ export default function ThemeSlider() {
               track('theme_changed', { theme: t });
               setThemeName(t);
             }}
-            className="relative px-2.5 sm:px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all"
+            className="relative px-3 sm:px-4 py-2.5 lg:py-1.5 min-h-[44px] lg:min-h-0 flex items-center justify-center rounded-full text-xs font-bold uppercase tracking-wide transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{

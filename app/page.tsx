@@ -60,7 +60,7 @@ export default function PortfolioPage() {
               track('ai_twin_opened', { source: 'header' });
               router.push('/chat');
             }}
-            className="flex items-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full font-medium shadow-lg text-white flex-shrink-0 whitespace-nowrap"
+            className="flex items-center gap-2 px-3 sm:px-6 py-3 rounded-full font-medium shadow-lg text-white flex-shrink-0 whitespace-nowrap"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -76,7 +76,7 @@ export default function PortfolioPage() {
             href={getImagePath("/resume.pdf")}
             download="Anmol_Bhatia_Resume.pdf"
             onClick={() => track('resume_downloaded', { source: 'header' })}
-            className="flex items-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-full text-white font-medium shadow-lg flex-shrink-0 whitespace-nowrap"
+            className="flex items-center gap-2 px-3 sm:px-6 py-3 rounded-full text-white font-medium shadow-lg flex-shrink-0 whitespace-nowrap"
             style={{ background: theme.buttonGradient }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -96,7 +96,7 @@ export default function PortfolioPage() {
             id="about"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-16"
+            className="mb-10 sm:mb-16"
           >
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
               {/* Profile Image - Left Side */}
@@ -111,7 +111,7 @@ export default function PortfolioPage() {
                   alt="Anmol Vijay Bhatia"
                   width={280}
                   height={340}
-                  className="rounded-2xl"
+                  className="rounded-2xl w-40 sm:w-56 md:w-[280px] h-auto"
                   priority
                 />
               </motion.div>
@@ -175,7 +175,7 @@ export default function PortfolioPage() {
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Ask my AI twin about my experience, projects, anything..."
-                        className="w-full px-3 py-2 rounded-full backdrop-blur-sm shadow-lg outline-none transition-all text-sm"
+                        className="w-full px-4 py-3 rounded-full backdrop-blur-sm shadow-lg outline-none transition-all text-base"
                         style={{
                           background: theme.colors.cardBg,
                           borderColor: theme.colors.border,
@@ -188,7 +188,7 @@ export default function PortfolioPage() {
                     <motion.button
                       onClick={handleSendMessage}
                       disabled={!chatInput.trim()}
-                      className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                      className="w-11 h-11 rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                       style={{ background: theme.buttonGradient }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -218,7 +218,7 @@ export default function PortfolioPage() {
                             track('ai_twin_prompt_clicked', { prompt: fullPrompts[idx], source: 'home' });
                             router.push(`/chat?message=${encodeURIComponent(fullPrompts[idx])}`);
                           }}
-                          className="px-2.5 py-1 rounded-full text-xs backdrop-blur-sm shadow-sm hover:shadow-md transition-all whitespace-nowrap flex-shrink-0"
+                          className="px-3.5 py-2.5 min-h-[44px] flex items-center rounded-full text-xs backdrop-blur-sm shadow-sm hover:shadow-md transition-all whitespace-nowrap flex-shrink-0"
                           style={{
                             background: theme.colors.cardBg,
                             borderColor: theme.colors.border,
@@ -289,12 +289,12 @@ export default function PortfolioPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mb-16"
+            className="mb-10 sm:mb-16"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Code className="w-8 h-8" style={{ color: theme.colors.primary }} />
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Code className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.colors.primary }} />
               <h2
-                className="text-3xl font-bold"
+                className="text-2xl sm:text-3xl font-bold"
                 style={{ color: theme.colors.foreground }}
               >
                 Technical Skills
@@ -307,7 +307,7 @@ export default function PortfolioPage() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.02 }}
-                  className="px-4 py-2 rounded-full font-medium shadow-md backdrop-blur-sm"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-medium shadow-md backdrop-blur-sm"
                   style={{
                     background: theme.colors.cardBg,
                     color: theme.colors.foreground,
@@ -328,12 +328,12 @@ export default function PortfolioPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mb-16"
+            className="mb-10 sm:mb-16"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Briefcase className="w-8 h-8" style={{ color: theme.colors.primary }} />
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Briefcase className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.colors.primary }} />
               <h2
-                className="text-3xl font-bold"
+                className="text-2xl sm:text-3xl font-bold"
                 style={{ color: theme.colors.foreground }}
               >
                 Work Experience
@@ -405,12 +405,12 @@ export default function PortfolioPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mb-16"
+            className="mb-10 sm:mb-16"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Award className="w-8 h-8" style={{ color: theme.colors.primary }} />
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Award className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.colors.primary }} />
               <h2
-                className="text-3xl font-bold"
+                className="text-2xl sm:text-3xl font-bold"
                 style={{ color: theme.colors.foreground }}
               >
                 Featured Projects
@@ -430,10 +430,10 @@ export default function PortfolioPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <GraduationCap className="w-8 h-8" style={{ color: theme.colors.primary }} />
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.colors.primary }} />
               <h2
-                className="text-3xl font-bold"
+                className="text-2xl sm:text-3xl font-bold"
                 style={{ color: theme.colors.foreground }}
               >
                 Education
@@ -475,12 +475,12 @@ export default function PortfolioPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mb-16 mt-16"
+            className="mb-10 sm:mb-16 mt-10 sm:mt-16"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Trophy className="w-8 h-8" style={{ color: theme.colors.primary }} />
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Trophy className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.colors.primary }} />
               <h2
-                className="text-3xl font-bold"
+                className="text-2xl sm:text-3xl font-bold"
                 style={{ color: theme.colors.foreground }}
               >
                 Awards & Certifications
@@ -584,12 +584,12 @@ export default function PortfolioPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="mb-16"
+            className="mb-10 sm:mb-16"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Heart className="w-8 h-8" style={{ color: theme.colors.primary }} />
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Heart className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.colors.primary }} />
               <h2
-                className="text-3xl font-bold"
+                className="text-2xl sm:text-3xl font-bold"
                 style={{ color: theme.colors.foreground }}
               >
                 Volunteering & Leadership
